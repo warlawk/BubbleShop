@@ -2,8 +2,8 @@ import {
   BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, EVENTS, GOAL, ITEMS, MAX_SLOTS,
   MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, START_CASH, START_SLOTS,
   autoSeconds, clamp, dailyRent, dailyWages, demandFactor, effPrice, hireCost,
-  itemById, levelFromXp, queueCap, round2, shelfCapacity, shelfCost, slotCost,
-  upgradeCost, upgradeMax,
+  itemById, levelFromXp, maxPrice, MIN_PRICE, queueCap, round2, shelfCapacity,
+  shelfCost, slotCost, snap25, upgradeCost, upgradeMax,
 } from "./data";
 import type {
   Action, CartLine, DayStats, GameState, MarketInfo, POSState, Queued, Shopper,
@@ -58,6 +58,10 @@ export function initGame(): GameState {
         s.pos = null;
         s.toasts = [];
         s.paused = false;
+        for (const id of Object.keys(s.prices)) {
+          const def = itemById(id);
+          s.prices[id] = round2(clamp(snap25(s.prices[id]), MIN_PRICE, maxPrice(def)));
+        }
         s.resumePhase = s.phase === "summary" ? "summary" : "playing";
         s.phase = "start";
         return s;
@@ -196,7 +200,7 @@ function trySpawn(s: GameState): Shopper | null {
     name: NAMES[Math.floor(Math.random() * NAMES.length)],
     hue: Math.floor(Math.random() * 360),
     cart,
-    t: 1.6 + Math.random() * 1.8,
+    t: 2.0 + Math.random() * 2.2,
   };
 }
 
@@ -325,7 +329,7 @@ function tick(st: GameState, dt: number): GameState {
 
   /* --- stockers refill shelves from storage --- */
   if (s.stockers > 0) {
-    s.stockAcc += dt * s.stockers * 2.5;
+    s.stockAcc += dt * s.stockers * 2.0;
     const shelfCap = shelfCapacity(s.capLvl);
     let moves = Math.floor(s.stockAcc);
     s.stockAcc -= moves;
@@ -415,7 +419,7 @@ export function reducer(st: GameState, a: Action): GameState {
     case "SET_PRICE": {
       const def = itemById(a.itemId);
       const s = { ...st, prices: { ...st.prices } };
-      s.prices[a.itemId] = round2(clamp(a.price, 0.5, def.retail * 2.4));
+      s.prices[a.itemId] = round2(clamp(snap25(a.price), MIN_PRICE, maxPrice(def)));
       return s;
     }
 
@@ -545,7 +549,7 @@ export function reducer(st: GameState, a: Action): GameState {
       let units = 0;
       let total = 0;
       for (const l of lines) { units += l.qty; total += l.qty * l.price; }
-      const maxTime = 15 + 2.5 * units;
+      const maxTime = 18 + 3 * units;
       const pos: POSState = {
         custId: c.id, custName: c.name, hue: c.hue,
         lines, total: round2(total), tendered: 0, given: 0,

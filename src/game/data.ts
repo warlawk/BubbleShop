@@ -1,13 +1,13 @@
 import type { DayEvent, ItemDef } from "./types";
 
 export const SAVE_KEY = "bubble-mart-tycoon-v1";
-export const DAY_LEN = 55; // seconds per day
+export const DAY_LEN = 66; // seconds per day (leisurely clock — plenty of time per customer)
 export const START_CASH = 120;
 export const GOAL = 3500;
 export const MAX_SLOTS = 16;
 export const START_SLOTS = 4;
 export const CARRY = 5; // units per manual restock click
-export const PATIENCE_SEC = 28;
+export const PATIENCE_SEC = 34;
 export const BASE_SPAWN = 0.26; // customers / sec (early days are quieter — see day ramp)
 export const MAX_STAFF = 4;
 export const WAGE_BASE = 35; // 1st employee's daily wage
@@ -71,7 +71,7 @@ export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register"
 /* ---------- derived formulas ---------- */
 export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
 export const queueCap = (registers: number) => 5 + 3 * (registers - 1);
-export const autoSeconds = (speedLvl: number) => 3.6 / (1 + 0.3 * speedLvl);
+export const autoSeconds = (speedLvl: number) => 4.3 / (1 + 0.3 * speedLvl);
 export const dailyRent = (slots: number) => 12 + slots * 2;
 /** wage ladder across ALL staff: 1st $35, 2nd $40, 3rd $45, 4th $50 per day */
 export const dailyWages = (cashiers: number, stockers: number) => {
@@ -85,6 +85,12 @@ export const demandFactor = (price: number, retail: number) =>
 
 export const clamp = (v: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, v));
+
+/* pricing lives on a strict $0.25 grid */
+export const MIN_PRICE = 0.5;
+export const snap25 = (n: number) => Math.round(n * 4) / 4;
+/** highest allowed shelf price, snapped onto the quarter grid */
+export const maxPrice = (def: ItemDef) => Math.floor(def.retail * 2.4 * 4) / 4;
 
 export const round2 = (n: number) => Math.round(n * 100) / 100;
 

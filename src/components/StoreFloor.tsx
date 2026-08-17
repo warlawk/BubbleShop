@@ -1,7 +1,8 @@
 import { useState, type Dispatch } from "react";
 import type { Action, GameState, Shelf } from "../game/types";
 import {
-  CARRY, ITEMS, MAX_SLOTS, demandFactor, fmt, itemById, shelfCapacity, shelfCost, slotCost,
+  CARRY, ITEMS, MAX_SLOTS, MIN_PRICE, demandFactor, fmt, itemById, maxPrice,
+  shelfCapacity, shelfCost, slotCost,
 } from "../game/data";
 import { sfx } from "../game/audio";
 import { IconLock, IconShelf, ItemChip } from "./bits";
@@ -58,18 +59,19 @@ function ShelfCard({ s, shelf, dispatch, onPick }: {
             <div className="flex items-center gap-1">
               <button
                 className="bb bb-red w-8 h-8 text-sm flex items-center justify-center"
-                onClick={() => { sfx.click(); dispatch({ type: "SET_PRICE", itemId: item.id, price: price - 0.5 }); }}
-                disabled={price <= 0.5}
-                title="Lower price (more demand)"
+                onClick={() => { sfx.click(); dispatch({ type: "SET_PRICE", itemId: item.id, price: price - 0.25 }); }}
+                disabled={price <= MIN_PRICE + 1e-9}
+                title="Lower price 25¢ (more demand)"
               >−</button>
               <div className="flex-1 text-center font-display text-base tabular-nums bg-sky-50 border-2 border-ink/20 rounded-xl py-0.5">
                 {fmt(price)}
+                <span className="text-[9px] font-black text-ink-soft block -mt-0.5 leading-2">in 25¢ steps</span>
               </div>
               <button
                 className="bb bb-green w-8 h-8 text-sm flex items-center justify-center"
-                onClick={() => { sfx.click(); dispatch({ type: "SET_PRICE", itemId: item.id, price: price + 0.5 }); }}
-                disabled={price >= item.retail * 2.4}
-                title="Raise price (more margin, less demand)"
+                onClick={() => { sfx.click(); dispatch({ type: "SET_PRICE", itemId: item.id, price: price + 0.25 }); }}
+                disabled={price >= maxPrice(item) - 1e-9}
+                title={`Raise price 25¢ (max ${fmt(maxPrice(item))})`}
               >+</button>
             </div>
             {evBoost > 1 && (
