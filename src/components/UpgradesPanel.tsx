@@ -11,9 +11,13 @@ import {
   IconShelf, IconWrench, ItemChip,
 } from "./bits";
 
-function Pips({ cur, max }: { cur: number; max: number }) {
+function Pips({ cur, max, perRow = 8 }: { cur: number; max: number; perRow?: number }) {
+  const wrapped = max > perRow;
   return (
-    <div className="flex gap-1">
+    <div
+      className={wrapped ? "grid gap-1" : "flex gap-1"}
+      style={wrapped ? { gridTemplateColumns: `repeat(${perRow}, 0.875rem)` } : undefined}
+    >
       {Array.from({ length: max }).map((_, i) => (
         <span
           key={i}
