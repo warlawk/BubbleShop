@@ -63,7 +63,7 @@ export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Actio
             <IconCart size={22} />
           </button>
           <div className="leading-none">
-            <div className="font-display text-white text-xl text-outline">BUBBLE MART</div>
+            <div className="font-display text-white text-xl text-outline cursor-pointer select-none" title="Bubble Mart Tycoon">BUBBLE MART</div>
             <button
               className={`inline-block mt-0.5 px-2 py-[1px] rounded-full bg-candy border-2 border-ink font-display text-[10px] text-white tracking-widest cursor-pointer ${armed ? "anim-ring anim-pulse-big" : ""}`}
               onClick={onTycoonTap}
@@ -80,7 +80,7 @@ export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Actio
         </div>
 
         {/* day + clock */}
-        <div className="flex items-center gap-2 bg-white/95 rounded-full border-[3px] border-ink pl-3 pr-2 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)]">
+        <div className="flex items-center gap-2 bg-white/95 rounded-full border-[3px] border-ink pl-3 pr-2 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)] cursor-pointer select-none" title="Store clock">
           <span className="font-display text-sm">Day {s.day}</span>
           {s.phase === "prep" ? (
             <span className="text-[10px] font-black tracking-widest text-red-600 bg-red-100 border-2 border-red-300 rounded-full px-2 py-[1px] anim-pop">
@@ -100,27 +100,27 @@ export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Actio
         </div>
 
         {/* cash */}
-        <div className="flex items-center rounded-full border-[3px] border-ink px-4 py-1 shadow-[0_3px_0_rgba(27,42,94,.45)]"
-          style={{ background: "linear-gradient(180deg,#8ce68f,#2eb84c)" }}>
+        <div className="flex items-center rounded-full border-[3px] border-ink px-4 py-1 shadow-[0_3px_0_rgba(27,42,94,.45)] cursor-pointer select-none"
+          style={{ background: "linear-gradient(180deg,#8ce68f,#2eb84c)" }} title="Cash in the till">
           <span key={s.cash} className="anim-pop font-display text-white text-lg text-outline tabular-nums">
             {fmt(s.cash)}
           </span>
         </div>
 
         {/* reputation */}
-        <div className="flex items-center gap-1.5 bg-white/95 rounded-full border-[3px] border-ink px-3 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)]">
+        <div className="flex items-center gap-1.5 bg-white/95 rounded-full border-[3px] border-ink px-3 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)] cursor-pointer select-none" title="Store reputation">
           <StarRow rep={s.rep} size={16} />
           <span className="text-xs font-black text-ink-soft tabular-nums">{s.rep.toFixed(1)}</span>
         </div>
 
         {/* level */}
-        <div className="flex items-center gap-1.5 bg-white/95 rounded-full border-[3px] border-ink px-3 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)]" title={`${into}/${need} XP`}>
+        <div className="flex items-center gap-1.5 bg-white/95 rounded-full border-[3px] border-ink px-3 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)] cursor-pointer select-none" title={`${into}/${need} XP — store level`}>
           <span className="font-display text-sm text-purple-700">Lv {s.level}</span>
           <div className="w-14 h-2.5 track"><div className="fill fill-pink" style={{ width: `${Math.min(100, (into / need) * 100)}%` }} /></div>
         </div>
 
         {/* goal */}
-        <div className="flex items-center gap-1.5 bg-white/95 rounded-full border-[3px] border-ink px-3 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)]" title={`Goal: ${fmt0(GOAL)} in the till`}>
+        <div className="flex items-center gap-1.5 bg-white/95 rounded-full border-[3px] border-ink px-3 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)] cursor-pointer select-none" title={`Goal: ${fmt0(GOAL)} in the till`}>
           <IconTrophy size={17} className="text-[#ffb400]" />
           <div className="w-16 h-2.5 track"><div className="fill fill-green" style={{ width: `${goalPct}%` }} /></div>
           <span className="text-[10px] font-black text-ink-soft tabular-nums">{Math.floor(goalPct)}%</span>

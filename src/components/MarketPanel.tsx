@@ -11,6 +11,10 @@ export function MarketPanel({ s, dispatch }: { s: GameState; dispatch: Dispatch<
     dispatch({ type: "BUY_STOCK", itemId, qty });
   };
 
+  const emptyCount = s.unlocked.filter((id) => (s.storage[id] ?? 0) === 0).length;
+  const allCost = s.unlocked.reduce(
+    (a, id) => a + round2(effPrice(s.market[id].price, s.market[id].flash) * 10), 0);
+
   return (
     <section className="panel p-4">
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -20,6 +24,24 @@ export function MarketPanel({ s, dispatch }: { s: GameState; dispatch: Dispatch<
         <p className="text-xs font-extrabold text-ink-soft">
           Prices drift daily around the baseline — buy low, stock the back room 📦
         </p>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <button
+            className="bb bb-blue py-1.5 px-3 text-xs"
+            onClick={() => { sfx.coin(); dispatch({ type: "BUY_ALL", qty: 10, onlyEmpty: false }); }}
+            disabled={s.unlocked.length === 0}
+            title={`Buy 10 units of every unlocked product (~${fmt(allCost)})`}
+          >
+            🚚 Stock everything · +10 each
+          </button>
+          <button
+            className="bb bb-orange py-1.5 px-3 text-xs"
+            onClick={() => { sfx.coin(); dispatch({ type: "BUY_ALL", qty: 25, onlyEmpty: true }); }}
+            disabled={emptyCount === 0}
+            title={`Buy 25 units of each of the ${emptyCount} product(s) that are empty in the back room`}
+          >
+            🔁 Refill empties{emptyCount > 0 ? ` (${emptyCount})` : ""} · +25 each
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2.5">

@@ -107,6 +107,9 @@ export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
   const [pickFor, setPickFor] = useState<number | null>(null);
   const totalStock = s.shelves.reduce((a, sh) => a + sh.stock, 0);
   const pickShelf = pickFor != null ? s.shelves.find((sh) => sh.id === pickFor) : null;
+  const emptyShelves = s.shelves.filter((sh) => !sh.itemId).length;
+  const usedIds = new Set(s.shelves.filter((sh) => sh.itemId).map((sh) => sh.itemId));
+  const unusedProducts = s.unlocked.filter((id) => !usedIds.has(id)).length;
 
   return (
     <section className="panel p-4">
@@ -115,6 +118,14 @@ export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
         <span className="text-xs font-extrabold text-ink-soft">
           {s.shelves.length} shelves · {s.slots}/{MAX_SLOTS} spaces
         </span>
+        <button
+          className="bb bb-purple py-1.5 px-3 text-xs"
+          onClick={() => { sfx.pop(); dispatch({ type: "AUTO_STOCK_SHELVES" }); }}
+          disabled={emptyShelves === 0 || unusedProducts === 0}
+          title="Fill empty shelves with products that don't have a shelf yet"
+        >
+          🤖 Auto-place{emptyShelves > 0 && unusedProducts > 0 ? ` (${Math.min(emptyShelves, unusedProducts)})` : ""}
+        </button>
         <div className="ml-auto flex flex-col items-end gap-1 max-w-[60%]">
           {s.event && (
             <div className="bg-[#fff3c9] border-[3px] border-ink rounded-full px-3 py-1 text-[11px] font-black text-ink anim-pop shadow-[0_3px_0_rgba(27,42,94,.15)]">

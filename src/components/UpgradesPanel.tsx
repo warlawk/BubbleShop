@@ -11,12 +11,13 @@ import {
   IconShelf, IconWrench, ItemChip,
 } from "./bits";
 
-function Pips({ cur, max, perRow = 8 }: { cur: number; max: number; perRow?: number }) {
-  const wrapped = max > perRow;
+function Pips({ cur, max }: { cur: number; max: number }) {
+  const cols = max <= 8 ? max : Math.ceil(max / 2); // balance into at most two rows
+  const wrapped = max > 8;
   return (
     <div
       className={wrapped ? "grid gap-1" : "flex gap-1"}
-      style={wrapped ? { gridTemplateColumns: `repeat(${perRow}, 0.875rem)` } : undefined}
+      style={wrapped ? { gridTemplateColumns: `repeat(${cols}, 0.875rem)` } : undefined}
     >
       {Array.from({ length: max }).map((_, i) => (
         <span
@@ -153,7 +154,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             title="Shelf Capacity"
             pips={{ cur: s.capLvl, max: upgradeMax("capacity") }}
             desc="Deeper shelves: every shelf holds +5 units."
-            extra={`${shelfCapacity(s.capLvl)} → ${shelfCapacity(Math.min(s.capLvl + 1, 4))} per shelf`}
+            extra={`${shelfCapacity(s.capLvl)} → ${shelfCapacity(Math.min(s.capLvl + 1, upgradeMax("capacity")))} per shelf`}
             cost={upgradeCost("capacity", s.capLvl)} maxed={s.capLvl >= upgradeMax("capacity")} canAfford={s.cash >= upgradeCost("capacity", s.capLvl)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "capacity" })}
           />

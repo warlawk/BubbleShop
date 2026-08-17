@@ -2,7 +2,7 @@ import {
   BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, DEBUG_FLOOR, EVENTS, GOAL, ITEMS,
   MAX_SLOTS, MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK,
   START_CASH, START_SLOTS, autoSeconds, clamp, dailyRent, dailyWages,
-  demandFactor, effPrice, hireCost, itemById, levelFromXp, maxPrice,
+  demandFactor, effPrice, fmt, hireCost, itemById, levelFromXp, maxPrice,
   MIN_PRICE, queueCap, round2, shelfCapacity, shelfCost, slotCost, snap25,
   upgradeCost, upgradeMax, wageOf,
 } from "./data";
@@ -470,6 +470,51 @@ export function reducer(st: GameState, a: Action): GameState {
       }
       s.storage[a.itemId] = (s.storage[a.itemId] ?? 0) + a.qty;
       s.stats.goods = round2(s.stats.goods + cost);
+      return s;
+    }
+
+    case "BUY_ALL": {
+      const s: GameState = { ...st, storage: { ...st.storage }, stats: { ...st.stats }, toasts: [...st.toasts] };
+      let spent = 0, units = 0, products = 0, skipped = 0;
+      for (const def of ITEMS) {
+        if (!s.unlocked.includes(def.id)) continue;
+        if (a.onlyEmpty && (s.storage[def.id] ?? 0) > 0) continue;
+        const m = s.market[def.id];
+        const cost = round2(effPrice(m.price, m.flash) * a.qty);
+        if (!pay(s, cost)) { skipped++; continue; }
+        s.storage[def.id] = (s.storage[def.id] ?? 0) + a.qty;
+        s.stats.goods = round2(s.stats.goods + cost);
+        spent = round2(spent + cost);
+        units += a.qty;
+        products++;
+      }
+      if (products === 0) {
+        toast(s, skipped > 0 ? "💸 Not enough cash for any of those orders!" : a.onlyEmpty ? "📦 Nothing in the back room is empty!" : "📦 No unlocked products to buy!", "bad");
+        return s;
+      }
+      toast(s, `🚚 Wholesale truck: +${units} units across ${products} product${products > 1 ? "s" : ""} for ${fmt(spent)}${skipped > 0 ? ` (${skipped} skipped — low cash)` : ""}`, "good");
+      return s;
+    }
+
+    case "AUTO_STOCK_SHELVES": {
+      const s: GameState = { ...st, shelves: st.shelves.map((sh) => ({ ...sh })), toasts: [...st.toasts] };
+      const used = new Set(s.shelves.filter((sh) => sh.itemId).map((sh) => sh.itemId as string));
+      const free = s.unlocked
+        .filter((id) => !used.has(id))
+        .sort((x, y) => itemById(y).retail - itemById(x).retail);
+      let placed = 0;
+      for (const sh of s.shelves) {
+        if (sh.itemId || free.length === 0) continue;
+        sh.itemId = free.shift() as string;
+        placed++;
+      }
+      if (placed === 0) {
+        toast(s, s.unlocked.every((id) => used.has(id))
+          ? "🤖 Every unlocked product already has a shelf!"
+          : "🤖 No empty shelves left to fill!", "info");
+        return s;
+      }
+      toast(s, `🤖 Auto-placed ${placed} new product${placed > 1 ? "s" : ""} on empty shelves!`, "good");
       return s;
     }
 

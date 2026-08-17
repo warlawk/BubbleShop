@@ -29,6 +29,12 @@ export const ITEMS: ItemDef[] = [
   { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ffe95e", "#8ac926"], base: 2.25, retail: 6.5,  unlockCost: 1150, reqLevel: 4, tag: "Tech" },
   { id: "icecream", name: "Frost Bites",    short: "FROST", grad: ["#b7f0e8", "#4fa8e8"], base: 1.45, retail: 4.25, unlockCost: 1600, reqLevel: 4, tag: "Frozen" },
   { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.3,  retail: 3.75, unlockCost: 2100, reqLevel: 5, tag: "Print" },
+  { id: "juice",    name: "Zing Juice",     short: "ZING",  grad: ["#ffd166", "#ff9f1c"], base: 0.55, retail: 1.95, unlockCost: 180,  reqLevel: 2, tag: "Drinks" },
+  { id: "noodles",  name: "Slurp Noodles",  short: "SLURP", grad: ["#f4a261", "#e76f51"], base: 0.9,  retail: 2.6,  unlockCost: 340,  reqLevel: 2, tag: "Pantry" },
+  { id: "toothpaste", name: "Mint Paste",   short: "MINT",  grad: ["#80ffdb", "#48bfe3"], base: 1.15, retail: 3.1,  unlockCost: 500,  reqLevel: 3, tag: "Home" },
+  { id: "petfood",  name: "Paw Treats",     short: "PAW",   grad: ["#d4a373", "#a98467"], base: 1.55, retail: 4.0,  unlockCost: 900,  reqLevel: 4, tag: "Pets" },
+  { id: "shampoo",  name: "Foam Shampoo",   short: "FOAM",  grad: ["#a8dadc", "#457b9d"], base: 1.9,  retail: 4.9,  unlockCost: 1300, reqLevel: 4, tag: "Home" },
+  { id: "energy",   name: "Turbo Energy",   short: "TURBO", grad: ["#caff04", "#7cb518"], base: 1.45, retail: 4.4,  unlockCost: 1850, reqLevel: 5, tag: "Drinks" },
 ];
 
 export const itemById = (id: string): ItemDef =>
@@ -65,14 +71,14 @@ export const STAFF_UNLOCK: Record<"cashier" | "stocker", number> = { cashier: 4,
 export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register", lvl: number) => {
   switch (kind) {
     case "speed":     return Math.round(220 * Math.pow(1.7, lvl));
-    case "capacity":  return Math.round(80 * Math.pow(1.6, lvl));
+    case "capacity":  return Math.round(80 * Math.pow(1.3, lvl));
     case "marketing": return Math.round(260 * Math.pow(1.75, lvl));
     case "register":  return Math.round(320 * Math.pow(1.8, lvl));
   }
 };
 
 export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register") =>
-  kind === "register" ? 2 : kind === "speed" ? 4 : kind === "capacity" ? 4 : 5;
+  kind === "register" ? 2 : kind === "speed" ? 4 : kind === "capacity" ? 10 : 5;
 
 /* ---------- derived formulas ---------- */
 export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;

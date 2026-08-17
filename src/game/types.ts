@@ -145,6 +145,8 @@ export type Action =
   | { type: "TAKE_RISK" }
   | { type: "GIVE_UP" }
   | { type: "BUY_STOCK"; itemId: string; qty: number }
+  | { type: "BUY_ALL"; qty: number; onlyEmpty: boolean }
+  | { type: "AUTO_STOCK_SHELVES" }
   | { type: "SET_PRICE"; itemId: string; price: number }
   | { type: "PLACE_SHELF"; slot: number }
   | { type: "ASSIGN_SHELF"; shelfId: number; itemId: string | null }
