@@ -40,13 +40,21 @@ export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Actio
         {/* day + clock */}
         <div className="flex items-center gap-2 bg-white/95 rounded-full border-[3px] border-ink pl-3 pr-2 py-1 shadow-[0_3px_0_rgba(27,42,94,.35)]">
           <span className="font-display text-sm">Day {s.day}</span>
-          <span className="text-xs font-extrabold text-ink-soft">{clockText(s.timeLeft)}</span>
-          <div className="relative w-20 h-3 track">
-            <div className="fill fill-sun" style={{ width: `${dayFrac * 100}%` }} />
-            <span className="absolute -top-2.5 text-sun transition-[left] duration-300" style={{ left: `calc(${dayFrac * 100}% - 9px)` }}>
-              <IconSun size={18} className="text-[#ffb400] drop-shadow" />
+          {s.phase === "prep" ? (
+            <span className="text-[10px] font-black tracking-widest text-red-600 bg-red-100 border-2 border-red-300 rounded-full px-2 py-[1px] anim-pop">
+              🌙 PREP TIME
             </span>
-          </div>
+          ) : (
+            <>
+              <span className="text-xs font-extrabold text-ink-soft">{clockText(s.timeLeft)}</span>
+              <div className="relative w-20 h-3 track">
+                <div className="fill fill-sun" style={{ width: `${dayFrac * 100}%` }} />
+                <span className="absolute -top-2.5 text-sun transition-[left] duration-300" style={{ left: `calc(${dayFrac * 100}% - 9px)` }}>
+                  <IconSun size={18} className="text-[#ffb400] drop-shadow" />
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* cash */}

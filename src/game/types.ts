@@ -91,7 +91,7 @@ export interface DayStats {
   walkouts: number;
 }
 
-export type Phase = "start" | "playing" | "summary" | "gameover" | "victory";
+export type Phase = "start" | "prep" | "playing" | "summary" | "gameover" | "victory";
 
 export interface GameState {
   v: number;
@@ -138,6 +138,7 @@ export type Action =
   | { type: "NEW_GAME" }
   | { type: "CONTINUE" }
   | { type: "NEXT_DAY" }
+  | { type: "OPEN_STORE" }
   | { type: "BUY_STOCK"; itemId: string; qty: number }
   | { type: "SET_PRICE"; itemId: string; price: number }
   | { type: "PLACE_SHELF"; slot: number }

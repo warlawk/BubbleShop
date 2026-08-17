@@ -1,9 +1,10 @@
 import {
   BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, EVENTS, GOAL, ITEMS, MAX_SLOTS,
-  MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, START_CASH, START_SLOTS,
-  autoSeconds, clamp, dailyRent, dailyWages, demandFactor, effPrice, hireCost,
-  itemById, levelFromXp, maxPrice, MIN_PRICE, queueCap, round2, shelfCapacity,
-  shelfCost, slotCost, snap25, upgradeCost, upgradeMax,
+  MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK, START_CASH,
+  START_SLOTS, autoSeconds, clamp, dailyRent, dailyWages, demandFactor,
+  effPrice, hireCost, itemById, levelFromXp, maxPrice, MIN_PRICE, queueCap,
+  round2, shelfCapacity, shelfCost, slotCost, snap25, upgradeCost, upgradeMax,
+  wageOf,
 } from "./data";
 import type {
   Action, CartLine, DayStats, GameState, MarketInfo, POSState, Queued, Shopper,
@@ -62,7 +63,7 @@ export function initGame(): GameState {
           const def = itemById(id);
           s.prices[id] = round2(clamp(snap25(s.prices[id]), MIN_PRICE, maxPrice(def)));
         }
-        s.resumePhase = s.phase === "summary" ? "summary" : "playing";
+        s.resumePhase = s.phase === "summary" ? "summary" : s.phase === "prep" ? "prep" : "playing";
         s.phase = "start";
         return s;
       }
@@ -361,12 +362,12 @@ export function reducer(st: GameState, a: Action): GameState {
 
     case "NEW_GAME": {
       clearSave();
-      return { ...fresh(), phase: "playing" };
+      return { ...fresh(), phase: "prep" };
     }
 
     case "CONTINUE": {
       const s = { ...st };
-      s.phase = s.resumePhase === "summary" ? "summary" : "playing";
+      s.phase = s.resumePhase;
       return s;
     }
 
@@ -379,7 +380,7 @@ export function reducer(st: GameState, a: Action): GameState {
       const s: GameState = {
         ...st, storage: { ...st.storage }, stats: emptyStats(),
         spawnAcc: 0, stockAcc: 0, autoAcc: 0, shoppers: [], queue: [],
-        day: st.day + 1, timeLeft: DAY_LEN, phase: "playing", toasts: [...st.toasts],
+        day: st.day + 1, timeLeft: DAY_LEN, phase: "prep", toasts: [...st.toasts],
       };
       const market: Record<string, MarketInfo> = {};
       for (const it of ITEMS) {
@@ -397,6 +398,13 @@ export function reducer(st: GameState, a: Action): GameState {
       s.event = Math.random() < 0.32 ? EVENTS[Math.floor(Math.random() * EVENTS.length)] : null;
       if (s.event) toast(s, `📰 ${s.event.name} ${s.event.desc}`, "info");
       s.market = market;
+      return s;
+    }
+
+    case "OPEN_STORE": {
+      if (st.phase !== "prep") return st;
+      const s: GameState = { ...st, phase: "playing", toasts: [...st.toasts] };
+      toast(s, "🔔 Sign flipped — doors open!", "good");
       return s;
     }
 
@@ -478,18 +486,24 @@ export function reducer(st: GameState, a: Action): GameState {
       const s = { ...st, toasts: [...st.toasts] };
       const n = a.kind === "cashier" ? s.cashiers : s.stockers;
       if (n >= MAX_STAFF) return st;
+      const unlockLvl = STAFF_UNLOCK[a.kind];
+      if (s.level < unlockLvl) {
+        toast(s, `🔒 ${a.kind === "cashier" ? "Cashiers" : "Stockers"} unlock at store level ${unlockLvl}!`, "bad");
+        return s;
+      }
       const cost = hireCost(a.kind, n);
       if (s.cash + 1e-9 < cost) {
         toast(s, "💸 Can't cover the signing bonus!", "bad");
         return s;
       }
       s.cash = round2(s.cash - cost);
+      const wage = wageOf(s.cashiers + s.stockers + 1); // ladder position of this new hire
       if (a.kind === "cashier") {
         s.cashiers++;
-        toast(s, `🧑‍💼 Cashier ${CASHIER_NAMES[n]} joined the till!`, "good");
+        toast(s, `🧑‍💼 Cashier ${CASHIER_NAMES[n]} joined the till! Wage $${wage}/day`, "good");
       } else {
         s.stockers++;
-        toast(s, `📦 Stocker ${STOCKER_NAMES[n]} is on shelves duty!`, "good");
+        toast(s, `📦 Stocker ${STOCKER_NAMES[n]} is on shelves duty! Wage $${wage}/day`, "good");
       }
       return s;
     }

@@ -277,6 +277,29 @@ input[type="range"].priceRange::-moz-range-thumb {
 
 .text-outline { text-shadow: 0 3px 0 rgba(27, 42, 94, 0.9), 0 0 14px rgba(255, 255, 255, 0.4); }
 
+/* ---------- hanging door sign ---------- */
+.sign-rail {
+  height: 7px;
+  background: linear-gradient(180deg, #a9713f, #5f3f26);
+  border: 2px solid var(--color-ink);
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(27, 42, 94, 0.35);
+}
+.door-swing {
+  transform-origin: top center;
+  animation: signSwing 3.6s ease-in-out infinite;
+}
+.door-swing:hover { animation-duration: 1.4s; }
+@keyframes signSwing {
+  0%, 100% { transform: rotate(-2.6deg); }
+  50% { transform: rotate(2.6deg); }
+}
+.sign-flip { animation: signFlip 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@keyframes signFlip {
+  0% { transform: rotateX(92deg); }
+  100% { transform: rotateX(0deg); }
+}
+
 /* ---------- barcode scan laser ---------- */
 .barcode-wrap { position: relative; overflow: hidden; border-radius: 8px; }
 .barcode-wrap .scanline {

@@ -78,4 +78,9 @@ export const sfx = {
       tone(f, 0.16, { type: "sine", gain: 0.09, when: i * 0.11 })
     );
   },
+  bell() {
+    tone(880, 0.14, { type: "triangle", gain: 0.1 });
+    tone(1174.7, 0.22, { type: "triangle", gain: 0.09, when: 0.1 });
+    tone(1568, 0.3, { type: "sine", gain: 0.05, when: 0.18 });
+  },
 };

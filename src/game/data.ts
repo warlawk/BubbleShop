@@ -12,8 +12,10 @@ export const BASE_SPAWN = 0.26; // customers / sec (early days are quieter — s
 export const MAX_STAFF = 4;
 export const WAGE_BASE = 35; // 1st employee's daily wage
 export const WAGE_STEP = 5;  // each additional employee costs +$5/day
-/** daily wage of the next hire, given current total headcount */
-export const nextWage = (totalStaff: number) => WAGE_BASE + WAGE_STEP * totalStaff;
+/** daily wage of employee #k on the ladder: 1st $35, 2nd $40, 3rd $45… (cashiers & stockers share one ladder) */
+export const wageOf = (k: number) => WAGE_BASE + WAGE_STEP * (k - 1);
+/** daily wage your NEXT hire will work for, given current total headcount */
+export const nextWage = (totalStaff: number) => wageOf(totalStaff + 1);
 
 export const ITEMS: ItemDef[] = [
   { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.48, retail: 1.75, unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
@@ -54,12 +56,15 @@ export const shelfCost = (count: number) =>
   Math.round(70 * Math.pow(1.3, count));
 
 export const hireCost = (kind: "cashier" | "stocker", n: number) =>
-  Math.round((kind === "cashier" ? 150 : 90) * Math.pow(1.5, n));
+  Math.round(kind === "cashier" ? 150 * Math.pow(1.5, n) : 80 * Math.pow(1.35, n));
+
+/** store level required before a staff type can be hired */
+export const STAFF_UNLOCK: Record<"cashier" | "stocker", number> = { cashier: 4, stocker: 2 };
 
 export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register", lvl: number) => {
   switch (kind) {
     case "speed":     return Math.round(220 * Math.pow(1.7, lvl));
-    case "capacity":  return Math.round(160 * Math.pow(1.6, lvl));
+    case "capacity":  return Math.round(80 * Math.pow(1.6, lvl));
     case "marketing": return Math.round(260 * Math.pow(1.75, lvl));
     case "register":  return Math.round(320 * Math.pow(1.8, lvl));
   }
@@ -73,10 +78,12 @@ export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
 export const queueCap = (registers: number) => 5 + 3 * (registers - 1);
 export const autoSeconds = (speedLvl: number) => 4.3 / (1 + 0.3 * speedLvl);
 export const dailyRent = (slots: number) => 12 + slots * 2;
-/** wage ladder across ALL staff: 1st $35, 2nd $40, 3rd $45, 4th $50 per day */
+/** total daily payroll — sum of the ladder: 1 staff $35, 2 staff $75, 3 staff $120, 4 staff $170 */
 export const dailyWages = (cashiers: number, stockers: number) => {
   const n = cashiers + stockers;
-  return WAGE_BASE * n + (WAGE_STEP * n * (n - 1)) / 2;
+  let total = 0;
+  for (let k = 1; k <= n; k++) total += wageOf(k);
+  return total;
 };
 
 /** demand 0.25..1.35 — cheaper than suggested retail boosts demand */

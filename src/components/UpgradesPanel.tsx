@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Dispatch } from "react";
 import type { Action, GameState } from "../game/types";
 import {
-  ITEMS, MAX_SLOTS, MAX_STAFF, WAGE_BASE, autoSeconds, dailyWages, fmt,
+  ITEMS, MAX_SLOTS, MAX_STAFF, STAFF_UNLOCK, autoSeconds, dailyWages, fmt,
   hireCost, nextWage, queueCap, shelfCapacity, slotCost, upgradeCost, upgradeMax,
 } from "../game/data";
 import { sfx } from "../game/audio";
@@ -25,12 +25,13 @@ function Pips({ cur, max }: { cur: number; max: number }) {
   );
 }
 
-function Card({ icon, title, desc, pips, cost, maxed, canAfford, extra, onBuy, btnLabel }: {
+function Card({ icon, title, desc, pips, cost, maxed, canAfford, extra, onBuy, btnLabel, locked }: {
   icon: ReactNode; title: string; desc: string; pips?: { cur: number; max: number };
   cost?: number; maxed: boolean; canAfford: boolean; extra?: string; onBuy: () => void; btnLabel?: string;
+  locked?: string;
 }) {
   return (
-    <div className="bg-white border-[3px] border-ink rounded-[20px] p-3 shadow-[0_5px_0_rgba(27,42,94,.18)] flex flex-col gap-1.5 hover:-translate-y-0.5 transition-transform">
+    <div className={`bg-white border-[3px] rounded-[20px] p-3 flex flex-col gap-1.5 transition-transform ${locked ? "border-dashed border-ink/40 opacity-70" : "border-ink shadow-[0_5px_0_rgba(27,42,94,.18)] hover:-translate-y-0.5"}`}>
       <div className="flex items-center gap-2">
         <span className="w-9 h-9 rounded-full border-[3px] border-ink flex items-center justify-center shrink-0"
           style={{ background: "linear-gradient(180deg,#6cc4ff,#1f86e8)", color: "#fff", boxShadow: "inset 0 2px 0 rgba(255,255,255,.5)" }}>
@@ -43,13 +44,19 @@ function Card({ icon, title, desc, pips, cost, maxed, canAfford, extra, onBuy, b
       </div>
       <p className="text-[11px] font-bold text-ink-soft leading-snug">{desc}</p>
       {extra && <p className="text-[10px] font-black text-sky-700 bg-sky-50 border-2 border-sky-200 rounded-lg px-1.5 py-0.5">{extra}</p>}
-      <button
-        className="bb bb-orange mt-auto py-1.5 text-sm"
-        disabled={maxed || !canAfford}
-        onClick={() => { sfx.pop(); onBuy(); }}
-      >
-        {maxed ? "MAXED OUT" : `${btnLabel ?? "Buy"} · ${fmt(cost ?? 0)}`}
-      </button>
+      {locked ? (
+        <div className="mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-full border-[3px] border-ink/30 bg-slate-100 font-display text-xs text-ink-soft">
+          <IconLock size={14} /> {locked}
+        </div>
+      ) : (
+        <button
+          className="bb bb-orange mt-auto py-1.5 text-sm"
+          disabled={maxed || !canAfford}
+          onClick={() => { sfx.pop(); onBuy(); }}
+        >
+          {maxed ? "MAXED OUT" : `${btnLabel ?? "Buy"} · ${fmt(cost ?? 0)}`}
+        </button>
+      )}
     </div>
   );
 }
@@ -63,18 +70,28 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
     <section className="panel p-4 flex flex-col gap-4">
       <div>
         <h2 className="panel-title" style={{ background: "linear-gradient(180deg,#c9a6ff,#8b48e8)" }}>Staff</h2>
-        {wages > 0 && <span className="ml-2 text-[11px] font-black text-ink-soft">Payroll: {fmt(wages)}/day</span>}
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-black text-ink-soft bg-purple-50 border-2 border-purple-200 rounded-full px-2.5 py-0.5">
+            💵 Wage ladder: 1st $35/day · 2nd $40 · 3rd $45 · 4th $50 · 5th $55… (cashiers & stockers share it)
+          </span>
+          {wages > 0 && (
+            <span className="text-[11px] font-black text-purple-700 bg-white border-2 border-purple-300 rounded-full px-2.5 py-0.5">
+              Payroll now: {fmt(wages)}/day for {headcount} staff
+            </span>
+          )}
+        </div>
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
           <Card
             icon={<IconPerson size={18} />}
             title={`Cashiers · ${s.cashiers}`}
             pips={{ cur: s.cashiers, max: MAX_STAFF }}
-            desc={`Automatically ring up the line while you manage the shop. Wages start at $${WAGE_BASE}/day, +$5 per extra hire.`}
+            desc="Automatically ring up the line on a timer while you manage the shop or work the register yourself."
             extra={
               s.cashiers === 0
-                ? `No cashier yet — you work the register! Next hire: $${nextWage(headcount)}/day`
-                : `${Math.min(s.cashiers, s.registers)} working the lane(s) · next hire $${nextWage(headcount)}/day`
+                ? `No cashier yet — you work the register! This hire would work for $${nextWage(headcount)}/day`
+                : `${Math.min(s.cashiers, s.registers)} working the lane(s) · next hire works for $${nextWage(headcount)}/day`
             }
+            locked={s.level < STAFF_UNLOCK.cashier ? `Unlocks at store Lv ${STAFF_UNLOCK.cashier}` : undefined}
             cost={hireCost("cashier", s.cashiers)} maxed={s.cashiers >= MAX_STAFF} canAfford={s.cash >= hireCost("cashier", s.cashiers)}
             onBuy={() => dispatch({ type: "HIRE", kind: "cashier" })} btnLabel="Hire"
           />
@@ -82,12 +99,13 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             icon={<IconBox size={18} />}
             title={`Stockers · ${s.stockers}`}
             pips={{ cur: s.stockers, max: MAX_STAFF }}
-            desc={`Haul boxes from the back room onto shelves all day long. Wages start at $${WAGE_BASE}/day, +$5 per extra hire.`}
+            desc="Haul boxes from the back room onto shelves all day long, so you never run dry mid-rush."
             extra={
               s.stockers === 0
-                ? `Right now you restock by hand (+5 per click) · next hire $${nextWage(headcount)}/day`
-                : `Shelves refill themselves · next hire $${nextWage(headcount)}/day`
+                ? `Right now you restock by hand (+5 per click) · this hire would work for $${nextWage(headcount)}/day`
+                : `Shelves refill themselves · next hire works for $${nextWage(headcount)}/day`
             }
+            locked={s.level < STAFF_UNLOCK.stocker ? `Unlocks at store Lv ${STAFF_UNLOCK.stocker}` : undefined}
             cost={hireCost("stocker", s.stockers)} maxed={s.stockers >= MAX_STAFF} canAfford={s.cash >= hireCost("stocker", s.stockers)}
             onBuy={() => dispatch({ type: "HIRE", kind: "stocker" })} btnLabel="Hire"
           />

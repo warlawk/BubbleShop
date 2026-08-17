@@ -4,6 +4,7 @@ import { SAVE_KEY, fmt, fmt0 } from "./game/data";
 import { setMuted, sfx } from "./game/audio";
 import type { Action } from "./game/types";
 import { TopBar } from "./components/TopBar";
+import { DoorSign } from "./components/DoorSign";
 import { StoreFloor } from "./components/StoreFloor";
 import { MarketPanel } from "./components/MarketPanel";
 import { UpgradesPanel } from "./components/UpgradesPanel";
@@ -129,7 +130,11 @@ export default function App() {
 
       <TopBar s={s} dispatch={dispatch} />
 
-      <main className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] items-start">
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4">
+        <DoorSign s={s} dispatch={dispatch} />
+      </div>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 mt-2 grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] items-start">
         {/* left column */}
         <div className="flex flex-col gap-3 min-w-0">
           <nav className="flex flex-wrap gap-2">

@@ -64,7 +64,9 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
         {s.queue.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-ink-soft gap-1 py-4">
             <IconPerson size={26} className="opacity-50" />
-            <p className="text-xs font-extrabold">No line — enjoy the quiet!</p>
+            <p className="text-xs font-extrabold">
+              {s.phase === "prep" ? "Doors closed — no line yet. Prep in peace!" : "No line — enjoy the quiet!"}
+            </p>
           </div>
         ) : (
           <div className="flex flex-wrap gap-3 items-start">

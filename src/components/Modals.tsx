@@ -27,7 +27,7 @@ export function StartScreen({ hasSave, dispatch }: { hasSave: boolean; dispatch:
           TYCOON
         </div>
         <p className="mt-4 text-white font-extrabold text-lg drop-shadow-[0_2px_0_rgba(27,42,94,.6)]">
-          Run the corner store. Buy low · shelf it · ring it up · get rich.
+          Run the corner store. Prep each morning, flip the sign, ring it up, get rich.
         </p>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -51,7 +51,7 @@ export function StartScreen({ hasSave, dispatch }: { hasSave: boolean; dispatch:
           {[
             { n: "1", title: "Buy wholesale", body: "Prices drift up & down every day around a baseline. Grab flash deals!", rot: "-rotate-2", bg: "linear-gradient(180deg,#ffc46b,#ff8a00)" },
             { n: "2", title: "Shelf & price it", body: "Restock shelves, set prices, lease floor space, add more products.", rot: "rotate-1", bg: "linear-gradient(180deg,#6cc4ff,#1f86e8)" },
-            { n: "3", title: "Work the register", body: "Scan items & count out change in the POS minigame — or hire cashiers to auto-serve.", rot: "-rotate-1", bg: "linear-gradient(180deg,#8ce68f,#2eb84c)" },
+            { n: "3", title: "Flip the sign & sell", body: "Open the doors, scan barcodes & count out change — or hire cashiers to run the lane.", rot: "-rotate-1", bg: "linear-gradient(180deg,#8ce68f,#2eb84c)" },
           ].map((c) => (
             <div key={c.n} className={`${c.rot} bg-white border-[3px] border-ink rounded-[22px] p-4 shadow-[0_7px_0_rgba(27,42,94,.28)] hover:rotate-0 transition-transform`}>
               <div className="w-9 h-9 rounded-full border-[3px] border-ink text-white font-display text-lg flex items-center justify-center mx-auto" style={{ background: c.bg, boxShadow: "inset 0 2px 0 rgba(255,255,255,.5)" }}>
@@ -154,9 +154,9 @@ export function DaySummary({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
           <div className="bg-red-50 border-2 border-red-200 rounded-xl py-1.5">😤 {s.stats.walkouts} walked out</div>
         </div>
         <button className="bb bb-orange w-full mt-5 py-3.5 text-xl anim-pulse-big" onClick={() => { sfx.day(); dispatch({ type: "NEXT_DAY" }); }}>
-          ☀️ Open Day {s.day + 1}
+          🌅 Prep for Day {s.day + 1}
         </button>
-        <p className="text-center text-[10px] font-black text-ink-soft mt-2">Wholesale prices will shift overnight…</p>
+        <p className="text-center text-[10px] font-black text-ink-soft mt-2">Overnight prices are in — restock & plan, then flip the sign to open!</p>
       </div>
     </div>
   );
