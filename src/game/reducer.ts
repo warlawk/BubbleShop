@@ -28,7 +28,7 @@ function fresh(): GameState {
   storage.soda = 26; storage.chips = 20; storage.bread = 14;
   return {
     v: 1, phase: "start", resumePhase: "playing",
-    muted: false, manualMode: true, endless: false,
+    muted: false, manualMode: true, paused: false, endless: false,
     day: 1, timeLeft: DAY_LEN, cash: START_CASH,
     xp: 0, level: 1, rep: 3,
     market, storage,
@@ -57,6 +57,7 @@ export function initGame(): GameState {
       if (s && s.v === 1 && typeof s.cash === "number") {
         s.pos = null;
         s.toasts = [];
+        s.paused = false;
         s.resumePhase = s.phase === "summary" ? "summary" : "playing";
         s.phase = "start";
         return s;
@@ -217,7 +218,7 @@ function resolvePosSuccess(s: GameState, tip: number) {
 /* ---------------- tick ---------------- */
 
 function tick(st: GameState, dt: number): GameState {
-  if (st.phase !== "playing") return st;
+  if (st.phase !== "playing" || st.paused) return st;
   const s: GameState = {
     ...st,
     shoppers: st.shoppers.map((c) => ({ ...c })),
@@ -604,7 +605,7 @@ export function reducer(st: GameState, a: Action): GameState {
       const due = round2(p.tendered - p.total);
       if (Math.abs(p.given - due) < 0.001) {
         const fast = p.time / p.maxTime > 0.45;
-        const tip = fast ? round2(Math.max(0.5, p.total * 0.12)) : 0;
+        const tip = fast ? round2(Math.max(0.6, p.total * 0.15)) : 0;
         resolvePosSuccess(s, tip);
       } else {
         p.time = Math.max(0.4, p.time - 2.5);
@@ -629,6 +630,10 @@ export function reducer(st: GameState, a: Action): GameState {
 
     case "TOGGLE_MANUAL":
       return { ...st, manualMode: !st.manualMode };
+
+    case "TOGGLE_PAUSE":
+      if (st.phase !== "playing") return st;
+      return { ...st, paused: !st.paused };
 
     case "TOGGLE_MUTE":
       return { ...st, muted: !st.muted };

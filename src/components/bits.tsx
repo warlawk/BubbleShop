@@ -144,3 +144,37 @@ export const IconDown = wrap(<path d="M12 5v14M6 13l6 6 6-6" />);
 export const IconCheck = wrap(<path d="M4.5 12.5l5 5L19.5 7" />);
 export const IconBolt = wrap(<path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z" />);
 export const IconCoin = wrap(<><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5v9M9.5 9.8c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1 1.8-2.5 2.2-2.5 1-2.5 2.2 1.1 2 2.5 2 2.5-.8 2.5-2" strokeWidth="1.6" /></>);
+export const IconPause = wrap(<><rect x="6.5" y="5" width="3.8" height="14" rx="1.3" fill="currentColor" stroke="none" /><rect x="13.7" y="5" width="3.8" height="14" rx="1.3" fill="currentColor" stroke="none" /></>);
+export const IconPlay = wrap(<path d="M8 5.2v13.6L19 12z" fill="currentColor" stroke="none" />);
+
+/** Faux product barcode — deterministic per seed, same style across all goods. */
+export function Barcode({ seed, className }: { seed: string; className?: string }) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  const rnd = () => {
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h >>> 0) % 1000) / 1000;
+  };
+  const bars: { x: number; w: number }[] = [];
+  let x = 5;
+  while (x < 88) {
+    const w = 1.2 + Math.floor(rnd() * 3) * 1.15;
+    bars.push({ x, w });
+    x += w + 1 + Math.floor(rnd() * 3) * 1.3;
+  }
+  const digits = ((h >>> 0) % 100000000).toString().padStart(8, "0");
+  return (
+    <svg viewBox="0 0 100 34" className={className} preserveAspectRatio="none" aria-hidden="true">
+      <rect x="0" y="0" width="100" height="34" rx="3" fill="#ffffff" />
+      {bars.map((b, i) => (
+        <rect key={i} x={b.x} y="3.5" width={b.w} height="21" fill="#1b2a5e" />
+      ))}
+      <text
+        x="50" y="31" textAnchor="middle" fontSize="6.5" fontWeight="bold"
+        fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" letterSpacing="2.5" fill="#1b2a5e"
+      >
+        {digits}
+      </text>
+    </svg>
+  );
+}

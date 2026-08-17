@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import type { Dispatch } from "react";
 import type { Action, GameState } from "../game/types";
 import {
-  CASHIER_WAGE, ITEMS, MAX_SLOTS, MAX_STAFF, STOCKER_WAGE, autoSeconds, fmt,
-  hireCost, queueCap, shelfCapacity, slotCost, upgradeCost, upgradeMax,
+  ITEMS, MAX_SLOTS, MAX_STAFF, WAGE_BASE, autoSeconds, dailyWages, fmt,
+  hireCost, nextWage, queueCap, shelfCapacity, slotCost, upgradeCost, upgradeMax,
 } from "../game/data";
 import { sfx } from "../game/audio";
 import {
@@ -56,7 +56,8 @@ function Card({ icon, title, desc, pips, cost, maxed, canAfford, extra, onBuy, b
 
 export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const locked = ITEMS.filter((i) => !s.unlocked.includes(i.id));
-  const wages = s.cashiers * CASHIER_WAGE + s.stockers * STOCKER_WAGE;
+  const wages = dailyWages(s.cashiers, s.stockers);
+  const headcount = s.cashiers + s.stockers;
 
   return (
     <section className="panel p-4 flex flex-col gap-4">
@@ -68,8 +69,12 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             icon={<IconPerson size={18} />}
             title={`Cashiers · ${s.cashiers}`}
             pips={{ cur: s.cashiers, max: MAX_STAFF }}
-            desc="Automatically ring up the line — no more POS minigame needed. Wage $45/day each."
-            extra={s.cashiers === 0 ? "Without one, YOU work the register!" : `${Math.min(s.cashiers, s.registers)} working the lane(s)`}
+            desc={`Automatically ring up the line while you manage the shop. Wages start at $${WAGE_BASE}/day, +$5 per extra hire.`}
+            extra={
+              s.cashiers === 0
+                ? `No cashier yet — you work the register! Next hire: $${nextWage(headcount)}/day`
+                : `${Math.min(s.cashiers, s.registers)} working the lane(s) · next hire $${nextWage(headcount)}/day`
+            }
             cost={hireCost("cashier", s.cashiers)} maxed={s.cashiers >= MAX_STAFF} canAfford={s.cash >= hireCost("cashier", s.cashiers)}
             onBuy={() => dispatch({ type: "HIRE", kind: "cashier" })} btnLabel="Hire"
           />
@@ -77,8 +82,12 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             icon={<IconBox size={18} />}
             title={`Stockers · ${s.stockers}`}
             pips={{ cur: s.stockers, max: MAX_STAFF }}
-            desc="Haul boxes from the back room onto shelves all day long. Wage $35/day each."
-            extra={s.stockers === 0 ? "Right now you restock by hand (+5 per click)" : "Shelves refill themselves"}
+            desc={`Haul boxes from the back room onto shelves all day long. Wages start at $${WAGE_BASE}/day, +$5 per extra hire.`}
+            extra={
+              s.stockers === 0
+                ? `Right now you restock by hand (+5 per click) · next hire $${nextWage(headcount)}/day`
+                : `Shelves refill themselves · next hire $${nextWage(headcount)}/day`
+            }
             cost={hireCost("stocker", s.stockers)} maxed={s.stockers >= MAX_STAFF} canAfford={s.cash >= hireCost("stocker", s.stockers)}
             onBuy={() => dispatch({ type: "HIRE", kind: "stocker" })} btnLabel="Hire"
           />

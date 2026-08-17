@@ -2,7 +2,7 @@ import { useEffect, type Dispatch } from "react";
 import type { Action, POSState } from "../game/types";
 import { CHANGE_DENOMS, fmt, itemById, round2 } from "../game/data";
 import { sfx } from "../game/audio";
-import { Avatar, IconCheck, ItemChip } from "./bits";
+import { Avatar, Barcode, IconCheck, ItemChip } from "./bits";
 
 export function POSGame({ pos, dispatch }: { pos: POSState; dispatch: Dispatch<Action> }) {
   useEffect(() => {
@@ -98,6 +98,13 @@ export function POSGame({ pos, dispatch }: { pos: POSState; dispatch: Dispatch<A
                         <div className="text-sm">{def.name}</div>
                         <div className="text-[10px] font-black opacity-85 tabular-nums">{fmt(l.price)} each</div>
                       </div>
+                      <span
+                        className="barcode-wrap hidden sm:block w-24 h-9 shrink-0 border-2 border-ink/40 shadow-[0_2px_0_rgba(27,42,94,.35)]"
+                        title="Scan me!"
+                      >
+                        <Barcode seed={l.itemId} className="w-full h-full block" />
+                        <span className="scanline" />
+                      </span>
                       {done ? (
                         <span className="w-9 h-9 rounded-full bg-white/85 border-[3px] border-ink flex items-center justify-center text-emerald-600">
                           <IconCheck size={18} />
@@ -143,7 +150,7 @@ export function POSGame({ pos, dispatch }: { pos: POSState; dispatch: Dispatch<A
                       dispatch({ type: "POS_GIVE", denom: d });
                     }}
                   >
-                    {d < 1 ? "50¢" : `$${d}`}
+                    {d < 1 ? (d === 0.25 ? "25¢" : "50¢") : `$${d}`}
                   </button>
                 ))}
               </div>

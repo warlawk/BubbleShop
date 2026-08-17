@@ -2,7 +2,7 @@ import type { Dispatch } from "react";
 import type { Action, GameState } from "../game/types";
 import { DAY_LEN, GOAL, fmt, fmt0, levelFromXp } from "../game/data";
 import { setMuted, sfx } from "../game/audio";
-import { IconCart, IconSoundOff, IconSoundOn, IconSun, IconTrophy, StarRow } from "./bits";
+import { IconCart, IconPause, IconPlay, IconSoundOff, IconSoundOn, IconSun, IconTrophy, StarRow } from "./bits";
 
 function clockText(timeLeft: number) {
   const f = 1 - timeLeft / DAY_LEN;
@@ -76,7 +76,16 @@ export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Actio
           <span className="text-[10px] font-black text-ink-soft tabular-nums">{Math.floor(goalPct)}%</span>
         </div>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          {s.phase === "playing" && (
+            <button
+              className={`bb w-10 h-10 flex items-center justify-center ${s.paused ? "bb-green anim-pulse-big" : "bb-yellow"}`}
+              onClick={() => { sfx.click(); dispatch({ type: "TOGGLE_PAUSE" }); }}
+              title={s.paused ? "Resume (P or Space)" : "Pause (P or Space)"}
+            >
+              {s.paused ? <IconPlay size={18} /> : <IconPause size={18} />}
+            </button>
+          )}
           <button
             className="bb bb-slate w-10 h-10 flex items-center justify-center"
             onClick={() => { setMuted(!s.muted); sfx.click(); dispatch({ type: "TOGGLE_MUTE" }); }}

@@ -1,8 +1,8 @@
 import { useMemo, type Dispatch, type ReactNode } from "react";
 import type { Action, GameState } from "../game/types";
 import { GOAL, fmt, fmt0, round2 } from "../game/data";
-import { sfx } from "../game/audio";
-import { IconTrophy, StarRow } from "./bits";
+import { setMuted, sfx } from "../game/audio";
+import { IconPause, IconTrophy, StarRow } from "./bits";
 
 function Overlay({ children }: { children: ReactNode }) {
   return (
@@ -66,9 +66,54 @@ export function StartScreen({ hasSave, dispatch }: { hasSave: boolean; dispatch:
         <p className="mt-6 text-sm font-black text-white drop-shadow-[0_2px_0_rgba(27,42,94,.6)] flex items-center gap-2">
           <IconTrophy size={20} className="text-[#ffd23f]" /> Stack {fmt0(GOAL)} in the till to win the Golden Till Award
         </p>
-        <p className="mt-1 text-[11px] font-bold text-white/90">Mouse / touch · Esc steps away from the register · game autosaves</p>
+        <p className="mt-1 text-[11px] font-bold text-white/90">Mouse / touch · P or Space pauses · Esc steps away from the register · game autosaves</p>
       </div>
     </Overlay>
+  );
+}
+
+/* ---------------- pause ---------------- */
+
+export function PauseScreen({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
+  return (
+    <div className="fixed inset-0 z-[65] bg-ink/70 flex items-center justify-center p-4">
+      <div className="panel max-w-md w-full overflow-hidden anim-pop">
+        <div className="awning h-7" />
+        <div className="p-6 text-center">
+          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full border-[3px] border-ink font-display text-2xl text-[#5c3b00] anim-wobble"
+            style={{ background: "linear-gradient(180deg,#ffe27a,#ffb400)", boxShadow: "0 4px 0 rgba(27,42,94,.35), inset 0 2px 0 rgba(255,255,255,.6)" }}>
+            <IconPause size={22} /> PAUSED
+          </div>
+          <p className="mt-2 text-xs font-black text-ink-soft">
+            Day {s.day} · {fmt(s.cash)} in the till · everyone's frozen mid-shop
+          </p>
+
+          <div className="mt-4 bg-sky-50 border-[3px] border-ink/20 rounded-2xl p-3 text-left flex flex-col gap-1.5">
+            {[
+              ["⏸", "P or Space pauses / resumes anytime"],
+              ["🖱️", "At the register, tap barcodes to scan items"],
+              ["💵", "Count out exact change — quick & right earns tips"],
+              ["📦", "Wholesale prices shift overnight. Buy low!"],
+            ].map(([ic, txt]) => (
+              <div key={txt} className="flex items-center gap-2 text-xs font-bold text-ink">
+                <span className="w-7 h-7 shrink-0 rounded-full bg-white border-2 border-ink flex items-center justify-center text-sm shadow-[0_2px_0_rgba(27,42,94,.25)]">{ic}</span>
+                {txt}
+              </div>
+            ))}
+          </div>
+
+          <button className="bb bb-green w-full mt-5 py-3.5 text-xl anim-pulse-big" onClick={() => { sfx.pop(); dispatch({ type: "TOGGLE_PAUSE" }); }}>
+            ▶ Back to work!
+          </button>
+          <button
+            className="bb bb-slate w-full mt-2 py-2 text-sm"
+            onClick={() => { setMuted(!s.muted); sfx.click(); dispatch({ type: "TOGGLE_MUTE" }); }}
+          >
+            {s.muted ? "🔇 Sound is off — tap to unmute" : "🔊 Sound is on — tap to mute"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

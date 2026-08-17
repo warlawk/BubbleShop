@@ -9,7 +9,7 @@ import { MarketPanel } from "./components/MarketPanel";
 import { UpgradesPanel } from "./components/UpgradesPanel";
 import { CheckoutPanel } from "./components/CheckoutPanel";
 import { POSGame } from "./components/POSGame";
-import { DaySummary, GameOver, StartScreen, Victory } from "./components/Modals";
+import { DaySummary, GameOver, PauseScreen, StartScreen, Victory } from "./components/Modals";
 
 type Tab = "floor" | "market" | "upgrades";
 
@@ -57,6 +57,20 @@ export default function App() {
     const t = setInterval(() => dispatch({ type: "TICK", dt: 0.25 }), 250);
     return () => clearInterval(t);
   }, []);
+
+  /* ---- pause hotkeys (P / Space) ---- */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName ?? "";
+      if (e.code === "Space" && ["BUTTON", "INPUT", "TEXTAREA", "SELECT", "A"].includes(tag)) return;
+      if (e.code === "Space" || e.code === "KeyP") {
+        e.preventDefault();
+        dispatch({ type: "TOGGLE_PAUSE" });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dispatch]);
 
   /* ---- mute sync ---- */
   useEffect(() => { setMuted(s.muted); }, [s.muted]);
@@ -207,6 +221,7 @@ export default function App() {
 
       {/* overlays */}
       {s.pos && s.phase === "playing" && <POSGame pos={s.pos} dispatch={dispatch} />}
+      {s.paused && s.phase === "playing" && <PauseScreen s={s} dispatch={dispatch} />}
       {s.phase === "start" && <StartScreen hasSave={saveExists} dispatch={dispatch} />}
       {s.phase === "summary" && <DaySummary s={s} dispatch={dispatch} />}
       {s.phase === "gameover" && <GameOver s={s} dispatch={dispatch} />}

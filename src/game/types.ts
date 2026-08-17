@@ -99,6 +99,7 @@ export interface GameState {
   resumePhase: Phase;
   muted: boolean;
   manualMode: boolean;
+  paused: boolean;
   endless: boolean;
   day: number;
   timeLeft: number;
@@ -152,6 +153,7 @@ export type Action =
   | { type: "POS_HAND" }
   | { type: "POS_ABORT" }
   | { type: "TOGGLE_MANUAL" }
+  | { type: "TOGGLE_PAUSE" }
   | { type: "TOGGLE_MUTE" }
   | { type: "TOAST_OUT"; id: number }
   | { type: "KEEP_PLAYING" };

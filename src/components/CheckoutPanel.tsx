@@ -27,29 +27,20 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
       </div>
 
       {/* who works the till */}
-      <div className="flex items-center gap-2">
-        <div className="flex rounded-full border-[3px] border-ink overflow-hidden shadow-[0_3px_0_rgba(27,42,94,.3)]">
-          <button
-            className={`px-3 py-1.5 font-display text-xs transition-colors ${s.manualMode ? "text-white" : "bg-white text-ink-soft hover:bg-sky-50"}`}
-            style={s.manualMode ? { background: "linear-gradient(180deg,#6cc4ff,#1f86e8)" } : undefined}
-            onClick={() => { sfx.click(); dispatch({ type: "TOGGLE_MANUAL" }); }}
-          >
-            🙋 I ring it
-          </button>
-          <button
-            className={`px-3 py-1.5 font-display text-xs transition-colors ${!s.manualMode ? "text-white" : "bg-white text-ink-soft hover:bg-sky-50"}`}
-            style={!s.manualMode ? { background: "linear-gradient(180deg,#8ce68f,#2eb84c)" } : undefined}
-            onClick={() => { sfx.click(); dispatch({ type: "TOGGLE_MANUAL" }); }}
-          >
-            🧑‍💼 Staff rings it
-          </button>
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {s.cashiers > 0 ? (
+          <span className="inline-flex items-center gap-1.5 bg-emerald-100 border-2 border-emerald-500 text-emerald-800 rounded-full px-3 py-1 text-[11px] font-black anim-pop">
+            🧑‍💼 Cashier{s.cashiers > 1 ? "s" : ""} auto-ringing the line
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 bg-sky-100 border-2 border-sky-400 text-sky-800 rounded-full px-3 py-1 text-[11px] font-black">
+            🙋 No cashier yet — you work the register!
+          </span>
+        )}
         <p className="text-[11px] font-bold text-ink-soft leading-tight">
-          {s.manualMode
-            ? "You work the POS minigame — fast hands earn tips!"
-            : s.cashiers > 0
-              ? "Cashiers auto-serve the line."
-              : "Hire a cashier to auto-serve!"}
+          {s.cashiers > 0
+            ? "Jump in any time — fast manual service earns tips!"
+            : "Hire one under Upgrades to auto-serve."}
         </p>
       </div>
 
@@ -104,7 +95,7 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
       )}
 
       <button
-        className={`bb bb-green w-full py-3 text-lg ${s.manualMode && s.queue.length > 0 ? "anim-pulse-big anim-ring" : ""}`}
+        className={`bb bb-green w-full py-3 text-lg ${s.cashiers === 0 && s.queue.length > 0 ? "anim-pulse-big anim-ring" : ""}`}
         disabled={s.queue.length === 0}
         onClick={() => { sfx.pop(); dispatch({ type: "SERVE_NEXT" }); }}
       >

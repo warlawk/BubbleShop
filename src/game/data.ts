@@ -2,7 +2,7 @@ import type { DayEvent, ItemDef } from "./types";
 
 export const SAVE_KEY = "bubble-mart-tycoon-v1";
 export const DAY_LEN = 55; // seconds per day
-export const START_CASH = 150;
+export const START_CASH = 120;
 export const GOAL = 3500;
 export const MAX_SLOTS = 16;
 export const START_SLOTS = 4;
@@ -10,20 +10,22 @@ export const CARRY = 5; // units per manual restock click
 export const PATIENCE_SEC = 28;
 export const BASE_SPAWN = 0.26; // customers / sec (early days are quieter — see day ramp)
 export const MAX_STAFF = 4;
-export const CASHIER_WAGE = 45;
-export const STOCKER_WAGE = 35;
+export const WAGE_BASE = 35; // 1st employee's daily wage
+export const WAGE_STEP = 5;  // each additional employee costs +$5/day
+/** daily wage of the next hire, given current total headcount */
+export const nextWage = (totalStaff: number) => WAGE_BASE + WAGE_STEP * totalStaff;
 
 export const ITEMS: ItemDef[] = [
-  { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.6,  retail: 1.5,  unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
-  { id: "chips",    name: "Crunch Chips",   short: "CRUNCH",grad: ["#ffbe63", "#f57f17"], base: 0.8,  retail: 2.0,  unlockCost: 0,    reqLevel: 1, tag: "Snacks" },
-  { id: "bread",    name: "Bakery Bread",   short: "BAKE",  grad: ["#ffd9a0", "#d9932f"], base: 0.9,  retail: 2.0,  unlockCost: 0,    reqLevel: 1, tag: "Bakery" },
-  { id: "milk",     name: "Moo Milk",       short: "MOO",   grad: ["#bfe8ff", "#4db8ff"], base: 1.0,  retail: 2.5,  unlockCost: 140,  reqLevel: 2, tag: "Dairy" },
-  { id: "candy",    name: "Sugar Bombs",    short: "SUGAR", grad: ["#ff9ecb", "#f0438c"], base: 0.5,  retail: 1.5,  unlockCost: 260,  reqLevel: 2, tag: "Sweets" },
-  { id: "coffee",   name: "Rocket Coffee",  short: "ROCKET",grad: ["#c98a4b", "#6f4218"], base: 2.2,  retail: 4.5,  unlockCost: 520,  reqLevel: 3, tag: "Drinks" },
-  { id: "soap",     name: "Bubble Soap",    short: "BUBBLE",grad: ["#7fe3d2", "#12a18d"], base: 1.4,  retail: 3.0,  unlockCost: 780,  reqLevel: 3, tag: "Home" },
-  { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ffe95e", "#8ac926"], base: 2.8,  retail: 6.0,  unlockCost: 1150, reqLevel: 4, tag: "Tech" },
-  { id: "icecream", name: "Frost Bites",    short: "FROST", grad: ["#b7f0e8", "#4fa8e8"], base: 1.8,  retail: 4.0,  unlockCost: 1600, reqLevel: 4, tag: "Frozen" },
-  { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.6,  retail: 3.5,  unlockCost: 2100, reqLevel: 5, tag: "Print" },
+  { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.48, retail: 1.75, unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
+  { id: "chips",    name: "Crunch Chips",   short: "CRUNCH",grad: ["#ffbe63", "#f57f17"], base: 0.64, retail: 2.25, unlockCost: 0,    reqLevel: 1, tag: "Snacks" },
+  { id: "bread",    name: "Bakery Bread",   short: "BAKE",  grad: ["#ffd9a0", "#d9932f"], base: 0.72, retail: 2.25, unlockCost: 0,    reqLevel: 1, tag: "Bakery" },
+  { id: "milk",     name: "Moo Milk",       short: "MOO",   grad: ["#bfe8ff", "#4db8ff"], base: 0.8,  retail: 2.75, unlockCost: 140,  reqLevel: 2, tag: "Dairy" },
+  { id: "candy",    name: "Sugar Bombs",    short: "SUGAR", grad: ["#ff9ecb", "#f0438c"], base: 0.4,  retail: 1.75, unlockCost: 260,  reqLevel: 2, tag: "Sweets" },
+  { id: "coffee",   name: "Rocket Coffee",  short: "ROCKET",grad: ["#c98a4b", "#6f4218"], base: 1.75, retail: 5.0,  unlockCost: 520,  reqLevel: 3, tag: "Drinks" },
+  { id: "soap",     name: "Bubble Soap",    short: "BUBBLE",grad: ["#7fe3d2", "#12a18d"], base: 1.1,  retail: 3.25, unlockCost: 780,  reqLevel: 3, tag: "Home" },
+  { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ffe95e", "#8ac926"], base: 2.25, retail: 6.5,  unlockCost: 1150, reqLevel: 4, tag: "Tech" },
+  { id: "icecream", name: "Frost Bites",    short: "FROST", grad: ["#b7f0e8", "#4fa8e8"], base: 1.45, retail: 4.25, unlockCost: 1600, reqLevel: 4, tag: "Frozen" },
+  { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.3,  retail: 3.75, unlockCost: 2100, reqLevel: 5, tag: "Print" },
 ];
 
 export const itemById = (id: string): ItemDef =>
@@ -52,7 +54,7 @@ export const shelfCost = (count: number) =>
   Math.round(70 * Math.pow(1.3, count));
 
 export const hireCost = (kind: "cashier" | "stocker", n: number) =>
-  Math.round((kind === "cashier" ? 100 : 90) * Math.pow(1.5, n));
+  Math.round((kind === "cashier" ? 150 : 90) * Math.pow(1.5, n));
 
 export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register", lvl: number) => {
   switch (kind) {
@@ -71,8 +73,11 @@ export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
 export const queueCap = (registers: number) => 5 + 3 * (registers - 1);
 export const autoSeconds = (speedLvl: number) => 3.6 / (1 + 0.3 * speedLvl);
 export const dailyRent = (slots: number) => 12 + slots * 2;
-export const dailyWages = (cashiers: number, stockers: number) =>
-  cashiers * CASHIER_WAGE + stockers * STOCKER_WAGE;
+/** wage ladder across ALL staff: 1st $35, 2nd $40, 3rd $45, 4th $50 per day */
+export const dailyWages = (cashiers: number, stockers: number) => {
+  const n = cashiers + stockers;
+  return WAGE_BASE * n + (WAGE_STEP * n * (n - 1)) / 2;
+};
 
 /** demand 0.25..1.35 — cheaper than suggested retail boosts demand */
 export const demandFactor = (price: number, retail: number) =>
@@ -93,7 +98,7 @@ export const fmt0 = (n: number) =>
 export const effPrice = (price: number, flash: boolean) =>
   round2(flash ? price * 0.6 : price);
 
-export const CHANGE_DENOMS = [20, 10, 5, 2, 1, 0.5];
+export const CHANGE_DENOMS = [20, 10, 5, 2, 1, 0.5, 0.25];
 
 export const levelFromXp = (xp: number) => {
   let lvl = 1;
