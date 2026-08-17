@@ -171,19 +171,29 @@ export default function App() {
           <section className="panel p-4">
             <h2 className="panel-title" style={{ background: "linear-gradient(180deg,#ff9ecb,#f0438c)" }}>Today in Town</h2>
             {s.event ? (
-              <div className="mt-2 candy-stripe border-[3px] border-ink rounded-2xl px-3 py-2 anim-pop">
-                <div className="font-display text-sm">📰 {s.event.name}</div>
-                <p className="text-[11px] font-bold text-ink">{s.event.desc}</p>
-                <p className="text-[10px] font-black text-ink/70 mt-0.5">
-                  Foot traffic ×{s.event.traffic.toFixed(2)}
-                  {Object.keys(s.event.demand).length > 0 && " · some products in high demand!"}
-                  {s.event.bigCarts && " · bigger carts!"}
-                </p>
+              <div className="mt-2 flex items-center gap-3 bg-[#ffe3ee] border-[3px] border-ink rounded-2xl px-3 py-2.5 anim-pop shadow-[0_4px_0_rgba(27,42,94,.15)]">
+                <span className="w-12 h-12 shrink-0 rounded-full bg-white border-[3px] border-ink flex items-center justify-center text-[26px] shadow-[inset_0_-3px_0_rgba(27,42,94,.12)] anim-bob">
+                  {s.event.emoji}
+                </span>
+                <div className="min-w-0">
+                  <div className="font-display text-sm leading-tight">{s.event.name}</div>
+                  <p className="text-[11px] font-bold text-ink leading-snug">{s.event.desc}</p>
+                  <p className="text-[10px] font-black text-ink/60 mt-0.5">
+                    Foot traffic ×{s.event.traffic.toFixed(2)}
+                    {Object.keys(s.event.demand).length > 0 && " · some products in high demand!"}
+                    {s.event.bigCarts && " · bigger carts!"}
+                  </p>
+                </div>
               </div>
             ) : (
-              <p className="mt-2 text-xs font-bold text-ink-soft bg-sky-50 border-2 border-sky-200 rounded-xl px-3 py-2">
-                ☁️ A regular day on Main Street. Prices shift every morning — check the market!
-              </p>
+              <div className="mt-2 flex items-center gap-3 bg-[#e3f4ff] border-[3px] border-ink rounded-2xl px-3 py-2.5 shadow-[0_4px_0_rgba(27,42,94,.12)]">
+                <span className="w-12 h-12 shrink-0 rounded-full bg-white border-[3px] border-ink flex items-center justify-center text-[26px] shadow-[inset_0_-3px_0_rgba(27,42,94,.12)]">
+                  ☁️
+                </span>
+                <p className="text-[11px] font-bold text-ink leading-snug">
+                  A regular day on Main Street. Prices shift every morning — check the market!
+                </p>
+              </div>
             )}
           </section>
 

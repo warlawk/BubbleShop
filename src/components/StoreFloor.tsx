@@ -117,8 +117,8 @@ export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
         </span>
         <div className="ml-auto flex flex-col items-end gap-1 max-w-[60%]">
           {s.event && (
-            <div className="candy-stripe border-[3px] border-ink rounded-full px-3 py-1 text-[11px] font-black text-ink anim-pop">
-              📰 {s.event.name} <span className="font-bold">{s.event.desc}</span>
+            <div className="bg-[#fff3c9] border-[3px] border-ink rounded-full px-3 py-1 text-[11px] font-black text-ink anim-pop shadow-[0_3px_0_rgba(27,42,94,.15)]">
+              {s.event.emoji} {s.event.name} <span className="font-bold">{s.event.desc}</span>
             </div>
           )}
           {totalStock < 10 && (

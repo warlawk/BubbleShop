@@ -1,10 +1,10 @@
 import {
-  BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, EVENTS, GOAL, ITEMS, MAX_SLOTS,
-  MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK, START_CASH,
-  START_SLOTS, autoSeconds, clamp, dailyRent, dailyWages, demandFactor,
-  effPrice, hireCost, itemById, levelFromXp, maxPrice, MIN_PRICE, queueCap,
-  round2, shelfCapacity, shelfCost, slotCost, snap25, upgradeCost, upgradeMax,
-  wageOf,
+  BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, DEBUG_FLOOR, EVENTS, GOAL, ITEMS,
+  MAX_SLOTS, MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK,
+  START_CASH, START_SLOTS, autoSeconds, clamp, dailyRent, dailyWages,
+  demandFactor, effPrice, hireCost, itemById, levelFromXp, maxPrice,
+  MIN_PRICE, queueCap, round2, shelfCapacity, shelfCost, slotCost, snap25,
+  upgradeCost, upgradeMax, wageOf,
 } from "./data";
 import type {
   Action, CartLine, DayStats, GameState, MarketInfo, POSState, Queued, Shopper,
@@ -16,6 +16,17 @@ const emptyStats = (): DayStats => ({
 
 const CASHIER_NAMES = ["Cassie", "Bobby", "Rex", "Dot"];
 const STOCKER_NAMES = ["Stu", "Mona", "Fizz", "Fay"];
+
+/** spend money; in debug mode purchases are free and cash snaps back to the floor */
+function pay(s: GameState, cost: number): boolean {
+  if (!s.debug && s.cash + 1e-9 < cost) return false;
+  s.cash = round2(s.cash - cost);
+  if (s.debug && s.cash < DEBUG_FLOOR) s.cash = DEBUG_FLOOR;
+  return true;
+}
+
+/** true if a level gate blocks this (debug mode lifts all gates) */
+const gated = (s: GameState, lvl: number) => !s.debug && s.level < lvl;
 
 function fresh(): GameState {
   const market: Record<string, MarketInfo> = {};
@@ -29,7 +40,7 @@ function fresh(): GameState {
   storage.soda = 26; storage.chips = 20; storage.bread = 14;
   return {
     v: 1, phase: "start", resumePhase: "playing",
-    muted: false, manualMode: true, paused: false, redWarned: false, endless: false,
+    muted: false, manualMode: true, paused: false, redWarned: false, debug: false, endless: false,
     day: 1, timeLeft: DAY_LEN, cash: START_CASH,
     xp: 0, level: 1, rep: 3,
     market, storage,
@@ -59,6 +70,7 @@ export function initGame(): GameState {
         s.pos = null;
         s.toasts = [];
         s.paused = false;
+        s.debug = !!s.debug;
         for (const id of Object.keys(s.prices)) {
           const def = itemById(id);
           s.prices[id] = round2(clamp(snap25(s.prices[id]), MIN_PRICE, maxPrice(def)));
@@ -268,6 +280,7 @@ function tick(st: GameState, dt: number): GameState {
     s.stats.wages = wages;
     s.stats.rent = rent;
     s.cash = round2(s.cash - wages - rent);
+    if (s.debug && s.cash < DEBUG_FLOOR) s.cash = DEBUG_FLOOR;
     s.lifetime.days++;
     s.autoAcc = 0;
     if (s.cash < 0) {
@@ -451,11 +464,10 @@ export function reducer(st: GameState, a: Action): GameState {
       if (!m) return st;
       const unit = effPrice(m.price, m.flash);
       const cost = round2(unit * a.qty);
-      if (s.cash + 1e-9 < cost) {
+      if (!pay(s, cost)) {
         toast(s, "💸 Not enough cash for that order!", "bad");
         return s;
       }
-      s.cash = round2(s.cash - cost);
       s.storage[a.itemId] = (s.storage[a.itemId] ?? 0) + a.qty;
       s.stats.goods = round2(s.stats.goods + cost);
       return s;
@@ -473,11 +485,10 @@ export function reducer(st: GameState, a: Action): GameState {
       if (a.slot >= s.slots) return st;
       if (s.shelves.some((sh) => sh.slot === a.slot)) return st;
       const cost = shelfCost(s.shelves.length);
-      if (s.cash + 1e-9 < cost) {
+      if (!pay(s, cost)) {
         toast(s, "💸 Can't afford a shelf right now!", "bad");
         return s;
       }
-      s.cash = round2(s.cash - cost);
       s.shelves.push({ id: s.nextId++, slot: a.slot, itemId: null, stock: 0 });
       toast(s, "🛠️ New shelf installed — pick what to stock!", "good");
       return s;
@@ -509,11 +520,10 @@ export function reducer(st: GameState, a: Action): GameState {
       const s = { ...st, toasts: [...st.toasts] };
       if (s.slots >= MAX_SLOTS) return st;
       const cost = slotCost(s.slots);
-      if (s.cash + 1e-9 < cost) {
+      if (!pay(s, cost)) {
         toast(s, "💸 The landlord wants more money first!", "bad");
         return s;
       }
-      s.cash = round2(s.cash - cost);
       s.slots++;
       toast(s, "🏗️ Leased more floor space!", "good");
       return s;
@@ -524,16 +534,15 @@ export function reducer(st: GameState, a: Action): GameState {
       const n = a.kind === "cashier" ? s.cashiers : s.stockers;
       if (n >= MAX_STAFF) return st;
       const unlockLvl = STAFF_UNLOCK[a.kind];
-      if (s.level < unlockLvl) {
+      if (gated(s, unlockLvl)) {
         toast(s, `🔒 ${a.kind === "cashier" ? "Cashiers" : "Stockers"} unlock at store level ${unlockLvl}!`, "bad");
         return s;
       }
       const cost = hireCost(a.kind, n);
-      if (s.cash + 1e-9 < cost) {
+      if (!pay(s, cost)) {
         toast(s, "💸 Can't cover the signing bonus!", "bad");
         return s;
       }
-      s.cash = round2(s.cash - cost);
       const wage = wageOf(s.cashiers + s.stockers + 1); // ladder position of this new hire
       if (a.kind === "cashier") {
         s.cashiers++;
@@ -547,7 +556,7 @@ export function reducer(st: GameState, a: Action): GameState {
 
     case "UPGRADE": {
       const s = { ...st, toasts: [...st.toasts] };
-      if ((a.kind === "speed" || a.kind === "register") && s.level < 4) {
+      if ((a.kind === "speed" || a.kind === "register") && gated(s, 4)) {
         toast(s, "🔒 That unlocks at store Lv 4, alongside cashiers!", "bad");
         return s;
       }
@@ -558,11 +567,10 @@ export function reducer(st: GameState, a: Action): GameState {
       const max = upgradeMax(a.kind);
       if (lvlOf >= max) return st;
       const cost = upgradeCost(a.kind, lvlOf);
-      if (s.cash + 1e-9 < cost) {
+      if (!pay(s, cost)) {
         toast(s, "💸 Not enough cash for that upgrade!", "bad");
         return s;
       }
-      s.cash = round2(s.cash - cost);
       if (a.kind === "speed") { s.speedLvl++; toast(s, "⚡ POS training complete — cashiers ring faster!", "good"); }
       if (a.kind === "capacity") { s.capLvl++; toast(s, "📚 Deeper shelves — +5 capacity each!", "good"); }
       if (a.kind === "marketing") { s.marketingLvl++; toast(s, "📣 Marketing blast — more feet on Main Street!", "good"); }
@@ -574,11 +582,10 @@ export function reducer(st: GameState, a: Action): GameState {
       const s = { ...st, unlocked: [...st.unlocked], prices: { ...st.prices }, toasts: [...st.toasts] };
       const def = itemById(a.itemId);
       if (s.unlocked.includes(a.itemId)) return st;
-      if (s.level < def.reqLevel || s.cash + 1e-9 < def.unlockCost) {
+      if (gated(s, def.reqLevel) || !pay(s, def.unlockCost)) {
         toast(s, "💸 You can't unlock that product yet!", "bad");
         return s;
       }
-      s.cash = round2(s.cash - def.unlockCost);
       s.unlocked.push(a.itemId);
       s.prices[a.itemId] = def.retail;
       toast(s, `🎉 Supplier deal signed — ${def.name} now available!`, "good");
@@ -696,6 +703,17 @@ export function reducer(st: GameState, a: Action): GameState {
 
     case "TOGGLE_MUTE":
       return { ...st, muted: !st.muted };
+
+    case "TOGGLE_DEBUG": {
+      const s: GameState = { ...st, debug: !st.debug, toasts: [...st.toasts] };
+      if (s.debug) {
+        s.cash = Math.max(s.cash, DEBUG_FLOOR);
+        toast(s, "🧪 SANDBOX MODE — infinite cash, all level gates lifted!", "good");
+      } else {
+        toast(s, "🧪 Sandbox mode off — back to the grind!", "info");
+      }
+      return s;
+    }
 
     case "TOAST_OUT":
       return { ...st, toasts: st.toasts.filter((t) => t.id !== a.id) };

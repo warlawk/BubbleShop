@@ -29,19 +29,19 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
       {/* who works the till */}
       <div className="flex flex-wrap items-center gap-2">
         {s.cashiers > 0 ? (
-          <span className="inline-flex items-center gap-1.5 bg-emerald-100 border-2 border-emerald-500 text-emerald-800 rounded-full px-3 py-1 text-[11px] font-black anim-pop">
-            🧑‍💼 Cashier{s.cashiers > 1 ? "s" : ""} auto-ringing the line
-          </span>
+          <>
+            <span className="inline-flex items-center gap-1.5 bg-emerald-100 border-2 border-emerald-500 text-emerald-800 rounded-full px-3 py-1 text-[11px] font-black anim-pop">
+              🧑‍💼 Cashier{s.cashiers > 1 ? "s" : ""} auto-ringing the line
+            </span>
+            <p className="text-[11px] font-bold text-ink-soft leading-tight">
+              Jump in any time — fast manual service earns tips!
+            </p>
+          </>
         ) : (
           <span className="inline-flex items-center gap-1.5 bg-sky-100 border-2 border-sky-400 text-sky-800 rounded-full px-3 py-1 text-[11px] font-black">
-            🙋 No cashier yet — you work the register!
+            No cashier — hire one in Upgrades
           </span>
         )}
-        <p className="text-[11px] font-bold text-ink-soft leading-tight">
-          {s.cashiers > 0
-            ? "Jump in any time — fast manual service earns tips!"
-            : "Hire one under Upgrades to auto-serve."}
-        </p>
       </div>
 
       {/* auto-lane progress */}
@@ -91,7 +91,6 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
                     <span className="text-[10px] font-black bg-white border-2 border-ink rounded-full px-1.5 leading-4">{units}🧺</span>
                     <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 border-2 border-emerald-600/50 rounded-full px-1.5 leading-4 tabular-nums">{fmt(custTotal(c.cart))}</span>
                   </div>
-                  {i === 0 && <span className="text-[9px] font-black uppercase tracking-wider text-sky-700">tap face to ring up</span>}
                 </div>
               );
             })}

@@ -74,6 +74,7 @@ export interface Toast {
 
 export interface DayEvent {
   id: string;
+  emoji: string;
   name: string;
   desc: string;
   traffic: number;
@@ -101,6 +102,7 @@ export interface GameState {
   manualMode: boolean;
   paused: boolean;
   redWarned: boolean; // overdraft grace used this stretch; resets on a positive day
+  debug: boolean; // sandbox mode: infinite cash, level gates lifted
   endless: boolean;
   day: number;
   timeLeft: number;
@@ -159,5 +161,6 @@ export type Action =
   | { type: "TOGGLE_MANUAL" }
   | { type: "TOGGLE_PAUSE" }
   | { type: "TOGGLE_MUTE" }
+  | { type: "TOGGLE_DEBUG" }
   | { type: "TOAST_OUT"; id: number }
   | { type: "KEEP_PLAYING" };

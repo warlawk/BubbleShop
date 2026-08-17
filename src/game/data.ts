@@ -10,6 +10,7 @@ export const CARRY = 5; // units per manual restock click
 export const PATIENCE_SEC = 34;
 export const BASE_SPAWN = 0.26; // customers / sec (early days are quieter — see day ramp)
 export const MAX_STAFF = 4;
+export const DEBUG_FLOOR = 1_000_000; // sandbox cash floor
 export const WAGE_BASE = 35; // 1st employee's daily wage
 export const WAGE_STEP = 5;  // each additional employee costs +$5/day
 /** daily wage of employee #k on the ladder: 1st $35, 2nd $40, 3rd $45… (cashiers & stockers share one ladder) */
@@ -34,12 +35,12 @@ export const itemById = (id: string): ItemDef =>
   ITEMS.find((i) => i.id === id) as ItemDef;
 
 export const EVENTS: DayEvent[] = [
-  { id: "heat",    name: "Heatwave!",        desc: "Everyone wants cold fizzy things today.",   traffic: 1.15, demand: { soda: 2.1, icecream: 2.3 }, bigCarts: false },
-  { id: "rain",    name: "Rainy Day",        desc: "Fewer folks out shopping… cozy till vibes.",traffic: 0.7,  demand: { bread: 1.4 },                bigCarts: false },
-  { id: "payday",  name: "Payday!",          desc: "Wallets are fat — carts are bigger.",       traffic: 1.35, demand: {},                            bigCarts: true },
-  { id: "marathon",name: "Marathon Weekend", desc: "Runners crave coffee and sugar.",           traffic: 1.1,  demand: { coffee: 2.4, candy: 1.6 },   bigCarts: false },
-  { id: "health",  name: "Health Kick",      desc: "Town went gym-mode. Soap up, snack down.",  traffic: 1.0,  demand: { soap: 2.0, chips: 0.5, candy: 0.5 }, bigCarts: false },
-  { id: "tourbus", name: "Tourist Bus",      desc: "Visitors grab batteries and magazines.",    traffic: 1.25, demand: { battery: 2.2, magazine: 2.2 }, bigCarts: false },
+  { id: "heat",    emoji: "🌞", name: "Heatwave!",        desc: "Everyone wants cold fizzy things today.",   traffic: 1.15, demand: { soda: 2.1, icecream: 2.3 }, bigCarts: false },
+  { id: "rain",    emoji: "🌧️", name: "Rainy Day",        desc: "Fewer folks out shopping… cozy till vibes.",traffic: 0.7,  demand: { bread: 1.4 },                bigCarts: false },
+  { id: "payday",  emoji: "💰", name: "Payday!",          desc: "Wallets are fat — carts are bigger.",       traffic: 1.35, demand: {},                            bigCarts: true },
+  { id: "marathon",emoji: "🏃", name: "Marathon Weekend", desc: "Runners crave coffee and sugar.",           traffic: 1.1,  demand: { coffee: 2.4, candy: 1.6 },   bigCarts: false },
+  { id: "health",  emoji: "🥗", name: "Health Kick",      desc: "Town went gym-mode. Soap up, snack down.",  traffic: 1.0,  demand: { soap: 2.0, chips: 0.5, candy: 0.5 }, bigCarts: false },
+  { id: "tourbus", emoji: "🚌", name: "Tourist Bus",      desc: "Visitors grab batteries and magazines.",    traffic: 1.25, demand: { battery: 2.2, magazine: 2.2 }, bigCarts: false },
 ];
 
 export const NAMES = [

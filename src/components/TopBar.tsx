@@ -1,4 +1,4 @@
-import type { Dispatch } from "react";
+import { useRef, useState, type Dispatch } from "react";
 import type { Action, GameState } from "../game/types";
 import { DAY_LEN, GOAL, fmt, fmt0, levelFromXp } from "../game/data";
 import { setMuted, sfx } from "../game/audio";
@@ -19,6 +19,33 @@ export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Actio
   const { into, need } = levelFromXp(s.xp);
   const goalPct = Math.min(100, (s.cash / GOAL) * 100);
 
+  /* secret sandbox gesture: tap the golden cart twice, then tap TYCOON once */
+  const taps = useRef(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [armed, setArmed] = useState(false);
+  const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const onCartTap = () => {
+    sfx.click();
+    taps.current++;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    if (taps.current >= 2) {
+      taps.current = 0;
+      setArmed(true);
+      if (armTimer.current) clearTimeout(armTimer.current);
+      armTimer.current = setTimeout(() => setArmed(false), 4000);
+    } else {
+      tapTimer.current = setTimeout(() => (taps.current = 0), 1200);
+    }
+  };
+  const onTycoonTap = () => {
+    if (!armed) return;
+    setArmed(false);
+    if (armTimer.current) clearTimeout(armTimer.current);
+    sfx.levelup();
+    dispatch({ type: "TOGGLE_DEBUG" });
+  };
+
   return (
     <header
       className="sticky top-0 z-30 border-b-4 border-ink px-3 py-2"
@@ -27,14 +54,29 @@ export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Actio
       <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-x-4 gap-y-2">
         {/* logo */}
         <div className="flex items-center gap-2 mr-1">
-          <div className="w-10 h-10 rounded-full border-[3px] border-ink flex items-center justify-center text-ink anim-wobble"
-            style={{ background: "linear-gradient(180deg,#ffe27a,#ffb400)", boxShadow: "0 3px 0 rgba(27,42,94,.5), inset 0 2px 0 rgba(255,255,255,.6)" }}>
+          <button
+            className="w-10 h-10 rounded-full border-[3px] border-ink flex items-center justify-center text-ink anim-wobble cursor-pointer active:scale-90 transition-transform"
+            style={{ background: "linear-gradient(180deg,#ffe27a,#ffb400)", boxShadow: "0 3px 0 rgba(27,42,94,.5), inset 0 2px 0 rgba(255,255,255,.6)" }}
+            onClick={onCartTap}
+            title="Bubble Mart"
+          >
             <IconCart size={22} />
-          </div>
+          </button>
           <div className="leading-none">
             <div className="font-display text-white text-xl text-outline">BUBBLE MART</div>
-            <div className="inline-block mt-0.5 px-2 py-[1px] rounded-full bg-candy border-2 border-ink font-display text-[10px] text-white tracking-widest">TYCOON</div>
+            <button
+              className={`inline-block mt-0.5 px-2 py-[1px] rounded-full bg-candy border-2 border-ink font-display text-[10px] text-white tracking-widest cursor-pointer ${armed ? "anim-ring anim-pulse-big" : ""}`}
+              onClick={onTycoonTap}
+              title="Tycoon"
+            >
+              TYCOON
+            </button>
           </div>
+          {s.debug && (
+            <span className="font-display text-[10px] tracking-wider text-[#5c3b00] bg-gradient-to-b from-[#ffe27a] to-[#ffb400] border-2 border-ink rounded-full px-2 py-0.5 shadow-[0_2px_0_rgba(27,42,94,.4)] anim-pop" title="Sandbox mode: infinite cash & all gates lifted">
+              🧪 SANDBOX
+            </span>
+          )}
         </div>
 
         {/* day + clock */}

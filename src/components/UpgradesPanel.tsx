@@ -95,7 +95,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
                 ? `No cashier yet — you work the register! This hire would work for $${nextWage(headcount)}/day`
                 : `${Math.min(s.cashiers, s.registers)} working the lane(s) · next hire works for $${nextWage(headcount)}/day`
             }
-            locked={s.level < STAFF_UNLOCK.cashier ? `Unlocks at store Lv ${STAFF_UNLOCK.cashier}` : undefined}
+            locked={!s.debug && s.level < STAFF_UNLOCK.cashier ? `Unlocks at store Lv ${STAFF_UNLOCK.cashier}` : undefined}
             cost={hireCost("cashier", s.cashiers)} maxed={s.cashiers >= MAX_STAFF} canAfford={s.cash >= hireCost("cashier", s.cashiers)}
             onBuy={() => dispatch({ type: "HIRE", kind: "cashier" })} btnLabel="Hire"
           />
@@ -109,7 +109,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
                 ? `Right now you restock by hand (+5 per click) · this hire would work for $${nextWage(headcount)}/day`
                 : `Shelves refill themselves · next hire works for $${nextWage(headcount)}/day`
             }
-            locked={s.level < STAFF_UNLOCK.stocker ? `Unlocks at store Lv ${STAFF_UNLOCK.stocker}` : undefined}
+            locked={!s.debug && s.level < STAFF_UNLOCK.stocker ? `Unlocks at store Lv ${STAFF_UNLOCK.stocker}` : undefined}
             cost={hireCost("stocker", s.stockers)} maxed={s.stockers >= MAX_STAFF} canAfford={s.cash >= hireCost("stocker", s.stockers)}
             onBuy={() => dispatch({ type: "HIRE", kind: "stocker" })} btnLabel="Hire"
           />
@@ -119,7 +119,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             pips={{ cur: s.speedLvl, max: upgradeMax("speed") }}
             desc="Cashiers scan 30% faster per level."
             extra={`${autoSeconds(s.speedLvl).toFixed(1)}s → ${autoSeconds(Math.min(s.speedLvl + 1, 4)).toFixed(1)}s per customer`}
-            locked={s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
+            locked={!s.debug && s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
             cost={upgradeCost("speed", s.speedLvl)} maxed={s.speedLvl >= upgradeMax("speed")} canAfford={s.cash >= upgradeCost("speed", s.speedLvl)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "speed" })} btnLabel="Train"
           />
@@ -135,7 +135,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             pips={{ cur: s.registers - 1, max: upgradeMax("register") }}
             desc="Each extra register fits +3 customers in line and adds a cashier lane."
             extra={`Line capacity: ${queueCap(s.registers)} → ${queueCap(Math.min(s.registers + 1, 3))}`}
-            locked={s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
+            locked={!s.debug && s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
             cost={upgradeCost("register", s.registers - 1)} maxed={s.registers >= 3} canAfford={s.cash >= upgradeCost("register", s.registers - 1)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "register" })}
           />
@@ -181,7 +181,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
         </h2>
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
           {locked.map((def) => {
-            const lvlOk = s.level >= def.reqLevel;
+            const lvlOk = s.debug || s.level >= def.reqLevel;
             const afford = s.cash >= def.unlockCost;
             return (
               <div key={def.id} className="bg-white border-[3px] border-ink rounded-[20px] p-3 shadow-[0_5px_0_rgba(27,42,94,.18)] flex flex-col gap-1.5">
