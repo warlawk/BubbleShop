@@ -1,6 +1,6 @@
 import { useMemo, type Dispatch, type ReactNode } from "react";
 import type { Action, GameState } from "../game/types";
-import { GOAL, fmt, fmt0, round2 } from "../game/data";
+import { GOAL, dailyRent, dailyWages, fmt, fmt0, round2 } from "../game/data";
 import { setMuted, sfx } from "../game/audio";
 import { IconPause, IconTrophy, StarRow } from "./bits";
 
@@ -111,6 +111,47 @@ export function PauseScreen({ s, dispatch }: { s: GameState; dispatch: Dispatch<
           >
             {s.muted ? "🔇 Sound is off — tap to unmute" : "🔊 Sound is on — tap to mute"}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- overdraft warning ---------------- */
+
+export function BankruptWarning({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
+  const owed = Math.abs(s.cash);
+  const tomorrow = dailyWages(s.cashiers, s.stockers) + dailyRent(s.slots);
+  return (
+    <div className="fixed inset-0 z-[65] bg-ink/75 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="panel max-w-md w-full overflow-hidden anim-pop my-6">
+        <div className="h-7" style={{ background: "repeating-linear-gradient(45deg,#e8323f 0 16px,#ffffff 16px 32px)", borderBottom: "3px solid var(--color-ink)" }} />
+        <div className="p-6 text-center">
+          <div className="text-4xl anim-wobble inline-block">🚨</div>
+          <h2 className="font-display text-3xl text-red-600 mt-1">In the red!</h2>
+          <p className="mt-2 text-sm font-extrabold text-ink">
+            The till is down <span className="font-display text-red-600 tabular-nums">−{fmt(owed)}</span> after wages and rent.
+          </p>
+          <div className="mt-3 bg-red-50 border-[3px] border-red-300 rounded-2xl p-3 text-left flex flex-col gap-1.5">
+            <p className="text-xs font-bold text-ink">
+              🏦 The bank is willing to float you <span className="font-black">one more day</span> to turn it around.
+            </p>
+            <p className="text-[11px] font-black text-ink-soft">
+              Tomorrow you'll owe another {fmt(tomorrow)} in wages + rent, so make it count:
+              price smart, work the register yourself, dodge flash deals you can't afford.
+            </p>
+            <p className="text-[11px] font-bold text-ink-soft italic">
+              (Heads up — some holes are too deep to dig out of. No shame in folding early!)
+            </p>
+          </div>
+          <div className="mt-4 flex flex-col gap-2">
+            <button className="bb bb-orange w-full py-3 text-lg anim-pulse-big" onClick={() => { sfx.day(); dispatch({ type: "TAKE_RISK" }); }}>
+              🎲 Take the risk — one more day!
+            </button>
+            <button className="bb bb-red w-full py-2.5 text-sm" onClick={() => { sfx.error(); dispatch({ type: "GIVE_UP" }); }}>
+              😞 Close up shop (game over)
+            </button>
+          </div>
         </div>
       </div>
     </div>

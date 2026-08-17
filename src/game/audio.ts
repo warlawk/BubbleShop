@@ -54,8 +54,9 @@ export const sfx = {
     tone(300, 0.09, { type: "sine", gain: 0.1, slide: 260 });
   },
   scan() {
-    tone(880, 0.08, { type: "square", gain: 0.06 });
-    tone(1320, 0.1, { type: "sine", gain: 0.08, when: 0.02 });
+    // classic laser-scanner chirp: short high-pitched beep
+    tone(2450, 0.075, { type: "square", gain: 0.05 });
+    tone(3100, 0.045, { type: "square", gain: 0.028, when: 0.02 });
   },
   error() {
     tone(160, 0.22, { type: "sawtooth", gain: 0.09, slide: -60 });

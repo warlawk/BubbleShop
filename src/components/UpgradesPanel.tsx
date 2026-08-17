@@ -115,6 +115,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             pips={{ cur: s.speedLvl, max: upgradeMax("speed") }}
             desc="Cashiers scan 30% faster per level."
             extra={`${autoSeconds(s.speedLvl).toFixed(1)}s → ${autoSeconds(Math.min(s.speedLvl + 1, 4)).toFixed(1)}s per customer`}
+            locked={s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
             cost={upgradeCost("speed", s.speedLvl)} maxed={s.speedLvl >= upgradeMax("speed")} canAfford={s.cash >= upgradeCost("speed", s.speedLvl)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "speed" })} btnLabel="Train"
           />
@@ -130,6 +131,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             pips={{ cur: s.registers - 1, max: upgradeMax("register") }}
             desc="Each extra register fits +3 customers in line and adds a cashier lane."
             extra={`Line capacity: ${queueCap(s.registers)} → ${queueCap(Math.min(s.registers + 1, 3))}`}
+            locked={s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
             cost={upgradeCost("register", s.registers - 1)} maxed={s.registers >= 3} canAfford={s.cash >= upgradeCost("register", s.registers - 1)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "register" })}
           />

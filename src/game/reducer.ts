@@ -29,7 +29,7 @@ function fresh(): GameState {
   storage.soda = 26; storage.chips = 20; storage.bread = 14;
   return {
     v: 1, phase: "start", resumePhase: "playing",
-    muted: false, manualMode: true, paused: false, endless: false,
+    muted: false, manualMode: true, paused: false, redWarned: false, endless: false,
     day: 1, timeLeft: DAY_LEN, cash: START_CASH,
     xp: 0, level: 1, rep: 3,
     market, storage,
@@ -63,7 +63,11 @@ export function initGame(): GameState {
           const def = itemById(id);
           s.prices[id] = round2(clamp(snap25(s.prices[id]), MIN_PRICE, maxPrice(def)));
         }
-        s.resumePhase = s.phase === "summary" ? "summary" : s.phase === "prep" ? "prep" : "playing";
+        s.resumePhase =
+          s.phase === "summary" ? "summary"
+          : s.phase === "prep" ? "prep"
+          : s.phase === "bankrupt" ? "bankrupt"
+          : "playing";
         s.phase = "start";
         return s;
       }
@@ -215,7 +219,9 @@ function resolvePosSuccess(s: GameState, tip: number) {
   s.pos = null;
   toast(
     s,
-    tip > 0 ? `💰 ${p.custName} paid ${"$" + (total + tip).toFixed(2)} (tip included!)` : `✅ ${p.custName} paid — nice sale!`,
+    tip > 0
+      ? `💰 ${p.custName} paid ${"$" + (total + tip).toFixed(2)} — includes a ${"$" + tip.toFixed(2)} tip!`
+      : `✅ ${p.custName} paid ${"$" + total.toFixed(2)}${p.tendered === total ? " (exact change!)" : ""} — nice sale!`,
     "good"
   );
 }
@@ -264,7 +270,16 @@ function tick(st: GameState, dt: number): GameState {
     s.cash = round2(s.cash - wages - rent);
     s.lifetime.days++;
     s.autoAcc = 0;
-    s.phase = s.cash < 0 ? "gameover" : "summary";
+    if (s.cash < 0) {
+      if (s.redWarned) {
+        s.phase = "gameover"; // second strike — the bank takes over
+      } else {
+        s.phase = "bankrupt"; // first time in the red: offer one grace day
+      }
+    } else {
+      s.redWarned = false; // survived in the black — the warning resets
+      s.phase = "summary";
+    }
     return s;
   }
 
@@ -353,6 +368,38 @@ function tick(st: GameState, dt: number): GameState {
   return s;
 }
 
+/* ---------------- day rollover ---------------- */
+
+function startNextDay(st: GameState): GameState {
+  const s: GameState = {
+    ...st, storage: { ...st.storage }, stats: emptyStats(),
+    spawnAcc: 0, stockAcc: 0, autoAcc: 0, shoppers: [], queue: [],
+    day: st.day + 1, timeLeft: DAY_LEN, phase: "prep", toasts: [...st.toasts],
+  };
+  const market: Record<string, MarketInfo> = {};
+  for (const it of ITEMS) {
+    const m = s.market[it.id];
+    const drift = m.price * (Math.random() - 0.5) * 0.14 + m.trend * it.base * 0.035;
+    const trend = clamp(m.trend + (Math.random() - 0.5) * 0.7, -1, 1);
+    const price = round2(clamp(m.price + drift, it.base * 0.78, it.base * 1.32));
+    market[it.id] = { price, trend, flash: false };
+  }
+  if (Math.random() < 0.6 && s.unlocked.length > 0) {
+    const id = s.unlocked[Math.floor(Math.random() * s.unlocked.length)];
+    market[id].flash = true;
+    toast(s, `⚡ Flash deal: ${itemById(id).name} wholesale −40% today!`, "info");
+  }
+  s.event = Math.random() < 0.32 ? EVENTS[Math.floor(Math.random() * EVENTS.length)] : null;
+  if (s.event) toast(s, `📰 ${s.event.name} ${s.event.desc}`, "info");
+  s.market = market;
+  /* day 5 lucky break */
+  if (s.day === 5) {
+    s.cash = round2(s.cash + 200);
+    toast(s, "🎉 Sweepstakes! Your lucky ticket pays out $200!", "good");
+  }
+  return s;
+}
+
 /* ---------------- main reducer ---------------- */
 
 export function reducer(st: GameState, a: Action): GameState {
@@ -376,29 +423,19 @@ export function reducer(st: GameState, a: Action): GameState {
       return s;
     }
 
-    case "NEXT_DAY": {
-      const s: GameState = {
-        ...st, storage: { ...st.storage }, stats: emptyStats(),
-        spawnAcc: 0, stockAcc: 0, autoAcc: 0, shoppers: [], queue: [],
-        day: st.day + 1, timeLeft: DAY_LEN, phase: "prep", toasts: [...st.toasts],
-      };
-      const market: Record<string, MarketInfo> = {};
-      for (const it of ITEMS) {
-        const m = s.market[it.id];
-        const drift = m.price * (Math.random() - 0.5) * 0.14 + m.trend * it.base * 0.035;
-        const trend = clamp(m.trend + (Math.random() - 0.5) * 0.7, -1, 1);
-        const price = round2(clamp(m.price + drift, it.base * 0.78, it.base * 1.32));
-        market[it.id] = { price, trend, flash: false };
-      }
-      if (Math.random() < 0.6 && s.unlocked.length > 0) {
-        const id = s.unlocked[Math.floor(Math.random() * s.unlocked.length)];
-        market[id].flash = true;
-        toast(s, `⚡ Flash deal: ${itemById(id).name} wholesale −40% today!`, "info");
-      }
-      s.event = Math.random() < 0.32 ? EVENTS[Math.floor(Math.random() * EVENTS.length)] : null;
-      if (s.event) toast(s, `📰 ${s.event.name} ${s.event.desc}`, "info");
-      s.market = market;
+    case "NEXT_DAY":
+      return startNextDay(st);
+
+    case "TAKE_RISK": {
+      if (st.phase !== "bankrupt") return st;
+      const s = startNextDay({ ...st, redWarned: true, toasts: [...st.toasts] });
+      toast(s, "🏦 The bank grants one last day — finish it in the black!", "info");
       return s;
+    }
+
+    case "GIVE_UP": {
+      if (st.phase !== "bankrupt") return st;
+      return { ...st, phase: "gameover" };
     }
 
     case "OPEN_STORE": {
@@ -510,6 +547,10 @@ export function reducer(st: GameState, a: Action): GameState {
 
     case "UPGRADE": {
       const s = { ...st, toasts: [...st.toasts] };
+      if ((a.kind === "speed" || a.kind === "register") && s.level < 4) {
+        toast(s, "🔒 That unlocks at store Lv 4, alongside cashiers!", "bad");
+        return s;
+      }
       const lvlOf = {
         speed: s.speedLvl, capacity: s.capLvl, marketing: s.marketingLvl,
         register: s.registers - 1,

@@ -27,25 +27,25 @@ function ShelfCard({ s, shelf, dispatch, onPick }: {
   const evBoost = item && s.event?.demand[item.id] ? s.event.demand[item.id] : 0;
 
   return (
-    <div className="anim-pop bg-white border-[3px] border-ink rounded-[22px] overflow-hidden shadow-[0_6px_0_rgba(27,42,94,.22)] flex flex-col">
-      <div className={`h-4 ${item ? "awning" : "awning awning-blue"}`} />
-      <div className="p-2.5 flex flex-col gap-1.5 flex-1">
+    <div className="anim-pop min-w-[112px] bg-white border-[3px] border-ink rounded-[16px] overflow-hidden shadow-[0_5px_0_rgba(27,42,94,.22)] flex flex-col">
+      <div className={`h-3 ${item ? "awning" : "awning awning-blue"}`} />
+      <div className="p-1.5 flex flex-col gap-1 flex-1">
         <div className="flex items-center justify-between gap-1">
           {item ? (
-            <ItemChip id={item.id} size="md" />
+            <ItemChip id={item.id} size="sm" />
           ) : (
-            <span className="text-xs font-black text-ink-soft italic">empty shelf</span>
+            <span className="text-[10px] font-black text-ink-soft italic">empty</span>
           )}
-          {badge && <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full border-2 ${badge.cls}`}>{badge.label}</span>}
+          {badge && <span className={`text-[8px] font-black px-1 py-px rounded-full border ${badge.cls}`}>{badge.label}</span>}
         </div>
 
         {/* stock bar */}
         <div>
-          <div className="flex justify-between text-[10px] font-black text-ink-soft mb-0.5">
+          <div className="flex justify-between text-[9px] font-black text-ink-soft mb-0.5 leading-3">
             <span>STOCK</span>
             <span className="tabular-nums">{shelf.stock}/{cap}</span>
           </div>
-          <div className="track h-3.5">
+          <div className="track h-2.5">
             <div
               className={`fill ${shelf.stock === 0 ? "fill-red" : demand > 1 ? "fill-pink" : "fill-blue"}`}
               style={{ width: `${(shelf.stock / cap) * 100}%` }}
@@ -56,35 +56,34 @@ function ShelfCard({ s, shelf, dispatch, onPick }: {
         {item ? (
           <>
             {/* price stepper */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <button
-                className="bb bb-red w-8 h-8 text-sm flex items-center justify-center"
+                className="bb bb-red w-6 h-6 text-xs flex items-center justify-center"
                 onClick={() => { sfx.click(); dispatch({ type: "SET_PRICE", itemId: item.id, price: price - 0.25 }); }}
                 disabled={price <= MIN_PRICE + 1e-9}
                 title="Lower price 25¢ (more demand)"
               >−</button>
-              <div className="flex-1 text-center font-display text-base tabular-nums bg-sky-50 border-2 border-ink/20 rounded-xl py-0.5">
+              <div className="flex-1 text-center font-display text-xs tabular-nums bg-sky-50 border-2 border-ink/20 rounded-lg py-0.5 leading-4">
                 {fmt(price)}
-                <span className="text-[9px] font-black text-ink-soft block -mt-0.5 leading-2">in 25¢ steps</span>
               </div>
               <button
-                className="bb bb-green w-8 h-8 text-sm flex items-center justify-center"
+                className="bb bb-green w-6 h-6 text-xs flex items-center justify-center"
                 onClick={() => { sfx.click(); dispatch({ type: "SET_PRICE", itemId: item.id, price: price + 0.25 }); }}
                 disabled={price >= maxPrice(item) - 1e-9}
                 title={`Raise price 25¢ (max ${fmt(maxPrice(item))})`}
               >+</button>
             </div>
             {evBoost > 1 && (
-              <div className="text-[9px] font-black text-fuchsia-700 bg-fuchsia-100 border-2 border-fuchsia-300 rounded-lg px-1.5 py-0.5 text-center anim-pop">
-                📰 In demand today ×{evBoost.toFixed(1)}
+              <div className="text-[8px] font-black text-fuchsia-700 bg-fuchsia-100 border border-fuchsia-300 rounded-md px-1 py-px text-center anim-pop leading-3">
+                📰 hot ×{evBoost.toFixed(1)}
               </div>
             )}
           </>
         ) : null}
 
-        <div className="mt-auto flex gap-1.5">
+        <div className="mt-auto flex gap-1">
           <button
-            className="bb bb-blue flex-1 py-1.5 text-xs"
+            className="bb bb-blue flex-1 py-1 text-[10px]"
             onClick={() => { sfx.pop(); dispatch({ type: "RESTOCK_SHELF", shelfId: shelf.id }); }}
             disabled={!item || storage <= 0 || shelf.stock >= cap}
             title={`Carry ${CARRY} units from the back room`}
@@ -92,7 +91,7 @@ function ShelfCard({ s, shelf, dispatch, onPick }: {
             +{CARRY} 📦{storage}
           </button>
           <button
-            className="bb bb-slate py-1.5 px-3 text-xs"
+            className="bb bb-slate py-1 px-1.5 text-[10px]"
             onClick={() => { sfx.click(); onPick(shelf.id); }}
             title={item ? "Swap product" : "Choose product"}
           >
@@ -130,7 +129,8 @@ export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+      {/* two tidy rows of eight spaces */}
+      <div className="grid grid-cols-8 gap-2 overflow-x-auto pb-1">
         {Array.from({ length: MAX_SLOTS }).map((_, slot) => {
           const shelf = s.shelves.find((sh) => sh.slot === slot);
           if (slot < s.slots) {
@@ -139,11 +139,11 @@ export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
             }
             const cost = shelfCost(s.shelves.length);
             return (
-              <div key={slot} className="min-h-[150px] rounded-[22px] border-[3px] border-dashed border-ink/40 bg-white/50 flex flex-col items-center justify-center gap-2 p-3">
-                <IconShelf size={30} className="text-ink-soft opacity-60" />
-                <span className="text-xs font-black text-ink-soft">Empty space</span>
+              <div key={slot} className="min-w-[112px] min-h-[128px] rounded-[16px] border-[3px] border-dashed border-ink/40 bg-white/50 flex flex-col items-center justify-center gap-1.5 p-2">
+                <IconShelf size={22} className="text-ink-soft opacity-60" />
+                <span className="text-[10px] font-black text-ink-soft">Empty space</span>
                 <button
-                  className="bb bb-orange py-1.5 px-4 text-sm"
+                  className="bb bb-orange py-1 px-2 text-[10px]"
                   disabled={s.cash < cost}
                   onClick={() => { sfx.pop(); dispatch({ type: "PLACE_SHELF", slot }); }}
                 >
@@ -154,11 +154,11 @@ export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
           }
           const cost = slotCost(s.slots);
           return (
-            <div key={slot} className="min-h-[150px] rounded-[22px] border-[3px] border-dashed border-ink/25 bg-ink/5 flex flex-col items-center justify-center gap-2 p-3">
-              <IconLock size={26} className="text-ink-soft opacity-50" />
-              <span className="text-[11px] font-black text-ink-soft">Landlord's space</span>
+            <div key={slot} className="min-w-[112px] min-h-[128px] rounded-[16px] border-[3px] border-dashed border-ink/25 bg-ink/5 flex flex-col items-center justify-center gap-1.5 p-2">
+              <IconLock size={20} className="text-ink-soft opacity-50" />
+              <span className="text-[9px] font-black text-ink-soft text-center leading-3">Landlord's space</span>
               <button
-                className="bb bb-purple py-1.5 px-4 text-xs"
+                className="bb bb-purple py-1 px-2 text-[10px]"
                 disabled={s.cash < cost}
                 onClick={() => { sfx.pop(); dispatch({ type: "BUY_SLOT" }); }}
                 title="Lease another floor space for a shelf"
@@ -169,6 +169,7 @@ export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
           );
         })}
       </div>
+      <p className="mt-1 text-[10px] font-black text-ink-soft/70 lg:hidden">← swipe the floor to see all 16 spaces →</p>
 
       {/* product picker modal */}
       {pickShelf && (

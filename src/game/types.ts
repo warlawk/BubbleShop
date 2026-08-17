@@ -91,7 +91,7 @@ export interface DayStats {
   walkouts: number;
 }
 
-export type Phase = "start" | "prep" | "playing" | "summary" | "gameover" | "victory";
+export type Phase = "start" | "prep" | "playing" | "summary" | "bankrupt" | "gameover" | "victory";
 
 export interface GameState {
   v: number;
@@ -100,6 +100,7 @@ export interface GameState {
   muted: boolean;
   manualMode: boolean;
   paused: boolean;
+  redWarned: boolean; // overdraft grace used this stretch; resets on a positive day
   endless: boolean;
   day: number;
   timeLeft: number;
@@ -139,6 +140,8 @@ export type Action =
   | { type: "CONTINUE" }
   | { type: "NEXT_DAY" }
   | { type: "OPEN_STORE" }
+  | { type: "TAKE_RISK" }
+  | { type: "GIVE_UP" }
   | { type: "BUY_STOCK"; itemId: string; qty: number }
   | { type: "SET_PRICE"; itemId: string; price: number }
   | { type: "PLACE_SHELF"; slot: number }

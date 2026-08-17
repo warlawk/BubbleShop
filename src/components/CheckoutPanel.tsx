@@ -74,15 +74,24 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
               const units = c.cart.reduce((a, l) => a + l.qty, 0);
               return (
                 <div key={c.id} className="anim-pop flex flex-col items-center gap-1" title={`${c.name} — ${units} items, ${fmt(custTotal(c.cart))}`}>
-                  <div className="relative">
+                  <button
+                    className="relative rounded-full transition-transform hover:scale-110 active:scale-95 cursor-pointer outline-none"
+                    onClick={() => { sfx.pop(); dispatch({ type: "SERVE_NEXT" }); }}
+                    title={`Tap ${c.name} to open the register`}
+                  >
                     <PatienceRing patience={c.patience} size={58} />
                     <Avatar hue={c.hue} size={44} mood={c.patience > 0.5 ? "happy" : c.patience > 0.25 ? "meh" : "angry"} />
-                  </div>
+                    {i === 0 && (
+                      <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-b from-[#8ce68f] to-[#2eb84c] border-2 border-ink flex items-center justify-center shadow-[0_2px_0_rgba(27,42,94,.4)] anim-bob">
+                        <IconRegister size={13} />
+                      </span>
+                    )}
+                  </button>
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] font-black bg-white border-2 border-ink rounded-full px-1.5 leading-4">{units}🧺</span>
                     <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 border-2 border-emerald-600/50 rounded-full px-1.5 leading-4 tabular-nums">{fmt(custTotal(c.cart))}</span>
                   </div>
-                  {i === 0 && <span className="text-[9px] font-black uppercase tracking-wider text-sky-700">up next</span>}
+                  {i === 0 && <span className="text-[9px] font-black uppercase tracking-wider text-sky-700">tap face to ring up</span>}
                 </div>
               );
             })}

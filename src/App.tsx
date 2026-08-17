@@ -10,7 +10,7 @@ import { MarketPanel } from "./components/MarketPanel";
 import { UpgradesPanel } from "./components/UpgradesPanel";
 import { CheckoutPanel } from "./components/CheckoutPanel";
 import { POSGame } from "./components/POSGame";
-import { DaySummary, GameOver, PauseScreen, StartScreen, Victory } from "./components/Modals";
+import { BankruptWarning, DaySummary, GameOver, PauseScreen, StartScreen, Victory } from "./components/Modals";
 
 type Tab = "floor" | "market" | "upgrades";
 
@@ -81,7 +81,7 @@ export default function App() {
   useEffect(() => {
     if (s.phase === "start") return;
     const now = Date.now();
-    if (now - lastSave.current > 1200 || s.phase === "summary" || s.phase === "gameover") {
+    if (now - lastSave.current > 1200 || s.phase === "summary" || s.phase === "gameover" || s.phase === "bankrupt") {
       lastSave.current = now;
       try {
         localStorage.setItem(SAVE_KEY, JSON.stringify({ ...s, pos: null, toasts: [] }));
@@ -104,6 +104,7 @@ export default function App() {
       if (s.phase === "summary") sfx.day();
       if (s.phase === "victory") sfx.levelup();
       if (s.phase === "gameover") sfx.error();
+      if (s.phase === "bankrupt") sfx.error();
       if (s.phase === "playing" && p.phase === "start") sfx.pop();
     }
     prev.current = { ...p, served: s.stats.served, level: s.level, walkouts: s.stats.walkouts, phase: s.phase };
@@ -229,6 +230,7 @@ export default function App() {
       {s.paused && s.phase === "playing" && <PauseScreen s={s} dispatch={dispatch} />}
       {s.phase === "start" && <StartScreen hasSave={saveExists} dispatch={dispatch} />}
       {s.phase === "summary" && <DaySummary s={s} dispatch={dispatch} />}
+      {s.phase === "bankrupt" && <BankruptWarning s={s} dispatch={dispatch} />}
       {s.phase === "gameover" && <GameOver s={s} dispatch={dispatch} />}
       {s.phase === "victory" && <Victory s={s} dispatch={dispatch} />}
     </div>
