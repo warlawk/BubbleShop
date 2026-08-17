@@ -1,19 +1,10 @@
-import { useEffect, useMemo, type Dispatch } from "react";
+import { useEffect, type Dispatch } from "react";
 import type { Action, POSState } from "../game/types";
 import { CHANGE_DENOMS, fmt, itemById, round2 } from "../game/data";
 import { sfx } from "../game/audio";
 import { Avatar, IconCheck, ItemChip } from "./bits";
 
 export function POSGame({ pos, dispatch }: { pos: POSState; dispatch: Dispatch<Action> }) {
-  const gridIds = useMemo(() => {
-    const ids = [...pos.lines.map((l) => l.itemId), ...pos.dummies];
-    for (let i = ids.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [ids[i], ids[j]] = [ids[j], ids[i]];
-    }
-    return ids;
-  }, [pos.custId]); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") dispatch({ type: "POS_ABORT" });
@@ -42,7 +33,7 @@ export function POSGame({ pos, dispatch }: { pos: POSState; dispatch: Dispatch<A
           <div className="text-white">
             <div className="font-display text-lg leading-tight text-outline">{pos.custName}</div>
             <div className="text-[11px] font-black opacity-90">
-              {pos.stage === "scan" ? `Scan all ${units} items!` : "Now hand back the right change!"}
+              {pos.stage === "scan" ? `Ring up their ${units} item${units > 1 ? "s" : ""}!` : "Now hand back the right change!"}
             </div>
           </div>
           <div className="ml-auto flex-1 max-w-[220px]">
@@ -82,26 +73,47 @@ export function POSGame({ pos, dispatch }: { pos: POSState; dispatch: Dispatch<A
           {pos.stage === "scan" ? (
             <div>
               <p className="text-xs font-black text-ink-soft mb-2">
-                🖱️ Click each product in their cart to scan it. Wrong clicks cost time!
+                🖱️ Tap each item in the cart to scan it — that's it!
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {gridIds.map((id, i) => (
-                  <button
-                    key={`${id}-${i}`}
-                    className="gchip py-4 text-lg hover:-translate-y-1 active:translate-y-1 transition-transform"
-                    style={{
-                      backgroundImage: `linear-gradient(180deg, ${itemById(id).grad[0]}, ${itemById(id).grad[1]})`,
-                    }}
-                    onClick={() => {
-                      const isRight = pos.lines.some((l) => l.itemId === id && l.left > 0);
-                      if (isRight) sfx.scan(); else sfx.error();
-                      dispatch({ type: "POS_SCAN", itemId: id });
-                    }}
-                  >
-                    {itemById(id).short}
-                  </button>
-                ))}
+              <div className="flex flex-col gap-2.5">
+                {pos.lines.map((l) => {
+                  const def = itemById(l.itemId);
+                  const done = l.left === 0;
+                  return (
+                    <button
+                      key={l.itemId}
+                      disabled={done}
+                      className={`gchip flex items-center gap-3 px-3 py-2.5 text-left transition-all ${done ? "opacity-45 saturate-50 cursor-default" : "hover:-translate-y-0.5 active:translate-y-0.5"}`}
+                      style={{
+                        backgroundImage: `linear-gradient(180deg, ${def.grad[0]}, ${def.grad[1]})`,
+                      }}
+                      onClick={() => {
+                        if (done) return;
+                        sfx.scan();
+                        dispatch({ type: "POS_SCAN", itemId: l.itemId });
+                      }}
+                    >
+                      <ItemChip id={l.itemId} size="md" />
+                      <div className="flex-1 leading-tight">
+                        <div className="text-sm">{def.name}</div>
+                        <div className="text-[10px] font-black opacity-85 tabular-nums">{fmt(l.price)} each</div>
+                      </div>
+                      {done ? (
+                        <span className="w-9 h-9 rounded-full bg-white/85 border-[3px] border-ink flex items-center justify-center text-emerald-600">
+                          <IconCheck size={18} />
+                        </span>
+                      ) : (
+                        <span className="font-display text-lg bg-ink/25 rounded-full px-3 py-1 tabular-nums">
+                          ×{l.left}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+              <p className="text-[10px] font-black text-ink-soft mt-2">
+                One tap scans one unit — a 3-pack takes three taps.
+              </p>
             </div>
           ) : (
             <div>

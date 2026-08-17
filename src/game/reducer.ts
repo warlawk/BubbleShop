@@ -265,8 +265,9 @@ function tick(st: GameState, dt: number): GameState {
   /* --- spawning --- */
   const p = 1 - s.timeLeft / DAY_LEN;
   const curve = 1 + 0.35 * Math.sin(p * Math.PI * 4 - Math.PI / 2);
+  const dayRamp = Math.min(1.15, 0.72 + 0.06 * (s.day - 1)); // quiet opening week
   const traffic =
-    BASE_SPAWN * curve *
+    BASE_SPAWN * curve * dayRamp *
     (0.55 + s.rep * 0.18) *
     (1 + 0.12 * s.marketingLvl) *
     (1 + 0.05 * (s.level - 1)) *
@@ -543,15 +544,10 @@ export function reducer(st: GameState, a: Action): GameState {
       let units = 0;
       let total = 0;
       for (const l of lines) { units += l.qty; total += l.qty * l.price; }
-      const dummies = ITEMS
-        .map((i) => i.id)
-        .filter((id) => !c.cart.some((l) => l.itemId === id))
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
-      const maxTime = 12 + 2.2 * units;
+      const maxTime = 15 + 2.5 * units;
       const pos: POSState = {
         custId: c.id, custName: c.name, hue: c.hue,
-        lines, dummies, total: round2(total), tendered: 0, given: 0,
+        lines, total: round2(total), tendered: 0, given: 0,
         time: maxTime, maxTime, stage: "scan", flashT: 0, lastMsg: "",
       };
       s.pos = pos;
@@ -563,12 +559,7 @@ export function reducer(st: GameState, a: Action): GameState {
       const s = { ...st, pos: { ...st.pos, lines: st.pos.lines.map((l) => ({ ...l })) } };
       const p = s.pos!;
       const line = p.lines.find((l) => l.itemId === a.itemId && l.left > 0);
-      if (!line) {
-        p.time = Math.max(0.4, p.time - 1.5);
-        p.flashT++;
-        p.lastMsg = "Not in this cart!";
-        return s;
-      }
+      if (!line) return st; // UI only offers scannable lines
       line.left--;
       p.lastMsg = "";
       if (p.lines.every((l) => l.left === 0)) {
@@ -616,7 +607,7 @@ export function reducer(st: GameState, a: Action): GameState {
         const tip = fast ? round2(Math.max(0.5, p.total * 0.12)) : 0;
         resolvePosSuccess(s, tip);
       } else {
-        p.time = Math.max(0.4, p.time - 4);
+        p.time = Math.max(0.4, p.time - 2.5);
         p.given = 0;
         p.flashT++;
         p.lastMsg = "Wrong change — try again!";

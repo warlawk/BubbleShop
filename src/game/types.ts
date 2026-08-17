@@ -56,7 +56,6 @@ export interface POSState {
   custName: string;
   hue: number;
   lines: POSLine[];
-  dummies: string[];
   total: number;
   tendered: number;
   given: number;

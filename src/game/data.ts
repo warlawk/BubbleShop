@@ -2,16 +2,16 @@ import type { DayEvent, ItemDef } from "./types";
 
 export const SAVE_KEY = "bubble-mart-tycoon-v1";
 export const DAY_LEN = 55; // seconds per day
-export const START_CASH = 120;
+export const START_CASH = 150;
 export const GOAL = 3500;
 export const MAX_SLOTS = 16;
 export const START_SLOTS = 4;
 export const CARRY = 5; // units per manual restock click
-export const PATIENCE_SEC = 24;
-export const BASE_SPAWN = 0.4; // customers / sec
+export const PATIENCE_SEC = 28;
+export const BASE_SPAWN = 0.26; // customers / sec (early days are quieter — see day ramp)
 export const MAX_STAFF = 4;
-export const CASHIER_WAGE = 50;
-export const STOCKER_WAGE = 40;
+export const CASHIER_WAGE = 45;
+export const STOCKER_WAGE = 35;
 
 export const ITEMS: ItemDef[] = [
   { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.6,  retail: 1.5,  unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
@@ -52,7 +52,7 @@ export const shelfCost = (count: number) =>
   Math.round(70 * Math.pow(1.3, count));
 
 export const hireCost = (kind: "cashier" | "stocker", n: number) =>
-  Math.round((kind === "cashier" ? 130 : 110) * Math.pow(1.5, n));
+  Math.round((kind === "cashier" ? 100 : 90) * Math.pow(1.5, n));
 
 export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register", lvl: number) => {
   switch (kind) {
@@ -68,9 +68,9 @@ export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register"
 
 /* ---------- derived formulas ---------- */
 export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
-export const queueCap = (registers: number) => 4 + 3 * (registers - 1);
+export const queueCap = (registers: number) => 5 + 3 * (registers - 1);
 export const autoSeconds = (speedLvl: number) => 3.6 / (1 + 0.3 * speedLvl);
-export const dailyRent = (slots: number) => 20 + slots * 3;
+export const dailyRent = (slots: number) => 12 + slots * 2;
 export const dailyWages = (cashiers: number, stockers: number) =>
   cashiers * CASHIER_WAGE + stockers * STOCKER_WAGE;
 
