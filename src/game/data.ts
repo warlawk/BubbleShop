@@ -1,0 +1,106 @@
+import type { DayEvent, ItemDef } from "./types";
+
+export const SAVE_KEY = "bubble-mart-tycoon-v1";
+export const DAY_LEN = 55; // seconds per day
+export const START_CASH = 120;
+export const GOAL = 3500;
+export const MAX_SLOTS = 16;
+export const START_SLOTS = 4;
+export const CARRY = 5; // units per manual restock click
+export const PATIENCE_SEC = 24;
+export const BASE_SPAWN = 0.4; // customers / sec
+export const MAX_STAFF = 4;
+export const CASHIER_WAGE = 50;
+export const STOCKER_WAGE = 40;
+
+export const ITEMS: ItemDef[] = [
+  { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.6,  retail: 1.5,  unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
+  { id: "chips",    name: "Crunch Chips",   short: "CRUNCH",grad: ["#ffbe63", "#f57f17"], base: 0.8,  retail: 2.0,  unlockCost: 0,    reqLevel: 1, tag: "Snacks" },
+  { id: "bread",    name: "Bakery Bread",   short: "BAKE",  grad: ["#ffd9a0", "#d9932f"], base: 0.9,  retail: 2.0,  unlockCost: 0,    reqLevel: 1, tag: "Bakery" },
+  { id: "milk",     name: "Moo Milk",       short: "MOO",   grad: ["#bfe8ff", "#4db8ff"], base: 1.0,  retail: 2.5,  unlockCost: 140,  reqLevel: 2, tag: "Dairy" },
+  { id: "candy",    name: "Sugar Bombs",    short: "SUGAR", grad: ["#ff9ecb", "#f0438c"], base: 0.5,  retail: 1.5,  unlockCost: 260,  reqLevel: 2, tag: "Sweets" },
+  { id: "coffee",   name: "Rocket Coffee",  short: "ROCKET",grad: ["#c98a4b", "#6f4218"], base: 2.2,  retail: 4.5,  unlockCost: 520,  reqLevel: 3, tag: "Drinks" },
+  { id: "soap",     name: "Bubble Soap",    short: "BUBBLE",grad: ["#7fe3d2", "#12a18d"], base: 1.4,  retail: 3.0,  unlockCost: 780,  reqLevel: 3, tag: "Home" },
+  { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ffe95e", "#8ac926"], base: 2.8,  retail: 6.0,  unlockCost: 1150, reqLevel: 4, tag: "Tech" },
+  { id: "icecream", name: "Frost Bites",    short: "FROST", grad: ["#b7f0e8", "#4fa8e8"], base: 1.8,  retail: 4.0,  unlockCost: 1600, reqLevel: 4, tag: "Frozen" },
+  { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.6,  retail: 3.5,  unlockCost: 2100, reqLevel: 5, tag: "Print" },
+];
+
+export const itemById = (id: string): ItemDef =>
+  ITEMS.find((i) => i.id === id) as ItemDef;
+
+export const EVENTS: DayEvent[] = [
+  { id: "heat",    name: "Heatwave!",        desc: "Everyone wants cold fizzy things today.",   traffic: 1.15, demand: { soda: 2.1, icecream: 2.3 }, bigCarts: false },
+  { id: "rain",    name: "Rainy Day",        desc: "Fewer folks out shopping… cozy till vibes.",traffic: 0.7,  demand: { bread: 1.4 },                bigCarts: false },
+  { id: "payday",  name: "Payday!",          desc: "Wallets are fat — carts are bigger.",       traffic: 1.35, demand: {},                            bigCarts: true },
+  { id: "marathon",name: "Marathon Weekend", desc: "Runners crave coffee and sugar.",           traffic: 1.1,  demand: { coffee: 2.4, candy: 1.6 },   bigCarts: false },
+  { id: "health",  name: "Health Kick",      desc: "Town went gym-mode. Soap up, snack down.",  traffic: 1.0,  demand: { soap: 2.0, chips: 0.5, candy: 0.5 }, bigCarts: false },
+  { id: "tourbus", name: "Tourist Bus",      desc: "Visitors grab batteries and magazines.",    traffic: 1.25, demand: { battery: 2.2, magazine: 2.2 }, bigCarts: false },
+];
+
+export const NAMES = [
+  "Betty", "Old Man Jenkins", "Zoe", "Marcus", "Priya", "Gus", "Lola", "Big Dave",
+  "Mimi", "Coach Ray", "Tilly", "Hank", "Nia", "Walter", "Poppy", "DJ Bleu",
+  "Rosa", "Ezra", "Duchess", "Sammy", "Vera", "Kip", "Aunt Mae", "Bruno",
+];
+
+/* ---------- cost curves ---------- */
+export const slotCost = (owned: number) =>
+  Math.round(180 * Math.pow(1.55, owned - START_SLOTS));
+
+export const shelfCost = (count: number) =>
+  Math.round(70 * Math.pow(1.3, count));
+
+export const hireCost = (kind: "cashier" | "stocker", n: number) =>
+  Math.round((kind === "cashier" ? 130 : 110) * Math.pow(1.5, n));
+
+export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register", lvl: number) => {
+  switch (kind) {
+    case "speed":     return Math.round(220 * Math.pow(1.7, lvl));
+    case "capacity":  return Math.round(160 * Math.pow(1.6, lvl));
+    case "marketing": return Math.round(260 * Math.pow(1.75, lvl));
+    case "register":  return Math.round(320 * Math.pow(1.8, lvl));
+  }
+};
+
+export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register") =>
+  kind === "register" ? 2 : kind === "speed" ? 4 : kind === "capacity" ? 4 : 5;
+
+/* ---------- derived formulas ---------- */
+export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
+export const queueCap = (registers: number) => 4 + 3 * (registers - 1);
+export const autoSeconds = (speedLvl: number) => 3.6 / (1 + 0.3 * speedLvl);
+export const dailyRent = (slots: number) => 20 + slots * 3;
+export const dailyWages = (cashiers: number, stockers: number) =>
+  cashiers * CASHIER_WAGE + stockers * STOCKER_WAGE;
+
+/** demand 0.25..1.35 — cheaper than suggested retail boosts demand */
+export const demandFactor = (price: number, retail: number) =>
+  clamp(2 - price / retail, 0.25, 1.35);
+
+export const clamp = (v: number, lo: number, hi: number) =>
+  Math.min(hi, Math.max(lo, v));
+
+export const round2 = (n: number) => Math.round(n * 100) / 100;
+
+export const fmt = (n: number) =>
+  "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export const fmt0 = (n: number) =>
+  "$" + Math.round(n).toLocaleString("en-US");
+
+/** effective wholesale price today (flash deal = 40% off) */
+export const effPrice = (price: number, flash: boolean) =>
+  round2(flash ? price * 0.6 : price);
+
+export const CHANGE_DENOMS = [20, 10, 5, 2, 1, 0.5];
+
+export const levelFromXp = (xp: number) => {
+  let lvl = 1;
+  let need = 0;
+  while (xp >= need + lvl * 130) {
+    need += lvl * 130;
+    lvl++;
+  }
+  return { level: lvl, into: xp - need, need: lvl * 130 };
+};
