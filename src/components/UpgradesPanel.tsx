@@ -67,7 +67,7 @@ function Card({ icon, title, desc, pips, cost, maxed, canAfford, extra, onBuy, b
 }
 
 export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
-  const locked = ITEMS.filter((i) => !s.unlocked.includes(i.id));
+  const locked = ITEMS.filter((i) => !s.unlocked.includes(i.id)).sort((a, b) => a.unlockCost - b.unlockCost);
   const wages = dailyWages(s.cashiers, s.stockers);
   const headcount = s.cashiers + s.stockers;
 

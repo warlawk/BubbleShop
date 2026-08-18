@@ -227,6 +227,45 @@ export function GameOver({ s, dispatch }: { s: GameState; dispatch: Dispatch<Act
   );
 }
 
+/* ---------------- sweepstakes ---------------- */
+
+export function Sweepstakes({ dispatch }: { dispatch: Dispatch<Action> }) {
+  const pieces = useMemo(
+    () =>
+      Array.from({ length: 36 }).map((_, i) => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 2.5,
+        dur: 2.4 + Math.random() * 2.4,
+        color: ["#e8323f", "#ffd23f", "#2eb84c", "#1f86e8", "#f0438c", "#ff8a00"][i % 6],
+      })),
+    []
+  );
+  return (
+    <div className="fixed inset-0 z-[65] bg-ink/70 flex items-center justify-center p-4 overflow-hidden">
+      {pieces.map((p, i) => (
+        <span key={i} className="confetti" style={{ left: `${p.left}vw`, background: p.color, animationDelay: `${p.delay}s`, animationDuration: `${p.dur}s` }} />
+      ))}
+      <div className="panel max-w-sm w-full overflow-hidden anim-pop text-center">
+        <div className="awning h-7" />
+        <div className="p-6">
+          <div className="w-20 h-20 mx-auto rounded-full border-[3px] border-ink flex items-center justify-center text-4xl anim-wobble"
+            style={{ background: "linear-gradient(180deg,#8ce68f,#2eb84c)", boxShadow: "0 5px 0 rgba(27,42,94,.4), inset 0 3px 0 rgba(255,255,255,.55)" }}>
+            💸
+          </div>
+          <h2 className="font-display text-3xl mt-3 text-emerald-700">SWEEPSTAKES WINNER!</h2>
+          <p className="text-sm font-bold text-ink-soft mt-2">
+            Your lucky ticket matched! <span className="font-display text-emerald-700 text-lg">$200</span> just landed
+            in the till — the whole town is talking about it.
+          </p>
+          <button className="bb bb-green w-full mt-5 py-3 text-lg anim-pulse-big" onClick={() => { sfx.ching(); dispatch({ type: "CLAIM_SWEEPSTAKES" }); }}>
+            🎉 Sweet! Open the store
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- victory ---------------- */
 
 export function Victory({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {

@@ -10,7 +10,7 @@ import { MarketPanel } from "./components/MarketPanel";
 import { UpgradesPanel } from "./components/UpgradesPanel";
 import { CheckoutPanel } from "./components/CheckoutPanel";
 import { POSGame } from "./components/POSGame";
-import { BankruptWarning, DaySummary, GameOver, PauseScreen, StartScreen, Victory } from "./components/Modals";
+import { BankruptWarning, DaySummary, GameOver, PauseScreen, StartScreen, Sweepstakes, Victory } from "./components/Modals";
 
 type Tab = "floor" | "market" | "upgrades";
 
@@ -105,6 +105,7 @@ export default function App() {
       if (s.phase === "victory") sfx.levelup();
       if (s.phase === "gameover") sfx.error();
       if (s.phase === "bankrupt") sfx.error();
+      if (s.phase === "sweepstakes") sfx.levelup();
       if (s.phase === "playing" && p.phase === "start") sfx.pop();
     }
     prev.current = { ...p, served: s.stats.served, level: s.level, walkouts: s.stats.walkouts, phase: s.phase };
@@ -242,6 +243,7 @@ export default function App() {
       {s.phase === "summary" && <DaySummary s={s} dispatch={dispatch} />}
       {s.phase === "bankrupt" && <BankruptWarning s={s} dispatch={dispatch} />}
       {s.phase === "gameover" && <GameOver s={s} dispatch={dispatch} />}
+      {s.phase === "sweepstakes" && <Sweepstakes dispatch={dispatch} />}
       {s.phase === "victory" && <Victory s={s} dispatch={dispatch} />}
     </div>
   );

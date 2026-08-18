@@ -92,7 +92,7 @@ export interface DayStats {
   walkouts: number;
 }
 
-export type Phase = "start" | "prep" | "playing" | "summary" | "bankrupt" | "gameover" | "victory";
+export type Phase = "start" | "prep" | "playing" | "summary" | "bankrupt" | "sweepstakes" | "gameover" | "victory";
 
 export interface GameState {
   v: number;
@@ -143,6 +143,7 @@ export type Action =
   | { type: "NEXT_DAY" }
   | { type: "OPEN_STORE" }
   | { type: "TAKE_RISK" }
+  | { type: "CLAIM_SWEEPSTAKES" }
   | { type: "GIVE_UP" }
   | { type: "BUY_STOCK"; itemId: string; qty: number }
   | { type: "BUY_ALL"; qty: number; onlyEmpty: boolean }

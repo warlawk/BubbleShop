@@ -79,6 +79,7 @@ export function initGame(): GameState {
           s.phase === "summary" ? "summary"
           : s.phase === "prep" ? "prep"
           : s.phase === "bankrupt" ? "bankrupt"
+          : s.phase === "sweepstakes" ? "sweepstakes"
           : "playing";
         s.phase = "start";
         return s;
@@ -192,7 +193,7 @@ function trySpawn(s: GameState): Shopper | null {
   const pool = [...ids];
   const cart: CartLine[] = [];
   const r1 = Math.random(), r2 = Math.random();
-  let k = 1 + (r1 < 0.7 ? 1 : 0) + (r2 < 0.4 ? 1 : 0);
+  let k = 1 + (r1 < 0.78 ? 1 : 0) + (r2 < 0.48 ? 1 : 0);
   k = Math.min(k, pool.length);
   for (let i = 0; i < k; i++) {
     const total = pool.reduce((a, id) => a + w(id), 0);
@@ -204,7 +205,7 @@ function trySpawn(s: GameState): Shopper | null {
       if (roll <= 0) { pick = id; break; }
     }
     pool.splice(pool.indexOf(pick), 1);
-    let qty = 1 + (Math.random() < 0.45 ? 1 : 0) + (s.event?.bigCarts ? 1 : 0);
+    let qty = 1 + (Math.random() < 0.6 ? 1 : 0) + (s.event?.bigCarts ? 1 : 0);
     qty = Math.min(qty, 3, avail[pick]);
     if (qty < 1) continue;
     avail[pick] -= qty;
@@ -406,10 +407,13 @@ function startNextDay(st: GameState): GameState {
   s.event = Math.random() < 0.32 ? EVENTS[Math.floor(Math.random() * EVENTS.length)] : null;
   if (s.event) toast(s, `📰 ${s.event.name} ${s.event.desc}`, "info");
   s.market = market;
-  /* day 5 lucky break */
+  /* day 5 lucky break — big center-screen announcement */
   if (s.day === 5) {
     s.cash = round2(s.cash + 200);
-    toast(s, "🎉 Sweepstakes! Your lucky ticket pays out $200!", "good");
+    s.phase = "sweepstakes"; // store opens once the win is claimed
+  } else if (Math.random() < 0.005) {
+    s.cash = round2(s.cash + 200);
+    toast(s, "🎉 Lucky scratch-off! You won $200!", "good");
   }
   return s;
 }
@@ -450,6 +454,11 @@ export function reducer(st: GameState, a: Action): GameState {
     case "GIVE_UP": {
       if (st.phase !== "bankrupt") return st;
       return { ...st, phase: "gameover" };
+    }
+
+    case "CLAIM_SWEEPSTAKES": {
+      if (st.phase !== "sweepstakes") return st;
+      return { ...st, phase: "prep" };
     }
 
     case "OPEN_STORE": {

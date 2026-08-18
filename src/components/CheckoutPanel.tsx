@@ -59,6 +59,18 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
         </div>
       )}
 
+      {/* staff / register mismatch tips */}
+      {s.cashiers > s.registers && (
+        <div className="text-[11px] font-black text-purple-800 bg-purple-100 border-2 border-purple-300 rounded-xl px-2 py-1 anim-pop">
+          🧑‍💼 {s.cashiers - s.registers} cashier{s.cashiers - s.registers > 1 ? "s" : ""} available but no free lane — add a register in Upgrades to put them to work!
+        </div>
+      )}
+      {s.registers > s.cashiers && s.cashiers > 0 && (
+        <div className="text-[11px] font-black text-orange-700 bg-orange-50 border-2 border-orange-300 rounded-xl px-2 py-1 anim-pop">
+          🧾 {s.registers - s.cashiers} register{s.registers - s.cashiers > 1 ? "s" : ""} sitting unmanned — hire a cashier in Upgrades to open the extra lane{s.registers - s.cashiers > 1 ? "s" : ""}!
+        </div>
+      )}
+
       {/* the line */}
       <div className="min-h-[104px] rounded-2xl border-[3px] border-dashed border-ink/30 bg-sky-50/60 p-2">
         {s.queue.length === 0 ? (
@@ -72,6 +84,9 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
           <div className="flex flex-wrap gap-3 items-start">
             {s.queue.map((c, i) => {
               const units = c.cart.reduce((a, l) => a + l.qty, 0);
+              const crowded = s.queue.length > 6; // pack faces tighter when the line piles up
+              const ringSize = crowded ? 46 : 58;
+              const faceSize = crowded ? 34 : 44;
               return (
                 <div key={c.id} className="anim-pop flex flex-col items-center gap-1" title={`${c.name} — ${units} items, ${fmt(custTotal(c.cart))}`}>
                   <button
@@ -79,11 +94,11 @@ export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
                     onClick={() => { sfx.pop(); dispatch({ type: "SERVE_NEXT" }); }}
                     title={`Tap ${c.name} to open the register`}
                   >
-                    <PatienceRing patience={c.patience} size={58} />
-                    <Avatar hue={c.hue} size={44} mood={c.patience > 0.5 ? "happy" : c.patience > 0.25 ? "meh" : "angry"} />
+                    <PatienceRing patience={c.patience} size={ringSize} />
+                    <Avatar hue={c.hue} size={faceSize} mood={c.patience > 0.5 ? "happy" : c.patience > 0.25 ? "meh" : "angry"} />
                     {i === 0 && (
-                      <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-b from-[#8ce68f] to-[#2eb84c] border-2 border-ink flex items-center justify-center shadow-[0_2px_0_rgba(27,42,94,.4)] anim-bob">
-                        <IconRegister size={13} />
+                      <span className={`absolute -bottom-1 -right-1 ${crowded ? "w-5 h-5" : "w-6 h-6"} rounded-full bg-gradient-to-b from-[#8ce68f] to-[#2eb84c] border-2 border-ink flex items-center justify-center shadow-[0_2px_0_rgba(27,42,94,.4)] anim-bob`}>
+                        <IconRegister size={crowded ? 11 : 13} />
                       </span>
                     )}
                   </button>
