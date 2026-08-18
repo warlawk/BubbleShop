@@ -1,3 +1,6 @@
+<img width="1080" alt="Bubble Mart Tycoon" src="https://github.com/user-attachments/assets/6e1545e2-c370-4d85-b645-9f76f3855790" />
+
+
 # 🛒 Bubble Mart Tycoon
 
 A glossy Web 2.0 shopkeeping simulator, played entirely through big bubble buttons and UI — no canvas, all DOM.
