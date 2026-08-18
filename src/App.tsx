@@ -12,24 +12,36 @@ import { CheckoutPanel } from "./components/CheckoutPanel";
 import { POSGame } from "./components/POSGame";
 import { BankruptWarning, DaySummary, GameOver, PauseScreen, StartScreen, Sweepstakes, Victory } from "./components/Modals";
 
+/** Tab identifier for the main navigation panels */
 type Tab = "floor" | "market" | "upgrades";
 
+/**
+ * AbandonButton - Confirmation button to reset game progress
+ * 
+ * Implements a 2.5-second armed state to prevent accidental game resets.
+ * Shows warning style when armed, normal style otherwise.
+ */
 function AbandonButton({ dispatch }: { dispatch: (a: Action) => void }) {
   const [armed, setArmed] = useState(false);
+  
+  // Auto-disarm after 2.5 seconds if no second click
   useEffect(() => {
     if (!armed) return;
     const t = setTimeout(() => setArmed(false), 2500);
     return () => clearTimeout(t);
   }, [armed]);
+  
   return (
     <button
       className={`bb w-full mt-3 py-1.5 text-xs ${armed ? "bb-red anim-pulse-big" : "bb-slate"}`}
       onClick={() => {
         if (armed) {
+          // Second click confirmed - reset game
           clearSave();
           sfx.click();
           dispatch({ type: "NEW_GAME" });
         } else {
+          // First click - arm the button
           sfx.click();
           setArmed(true);
         }
@@ -41,28 +53,46 @@ function AbandonButton({ dispatch }: { dispatch: (a: Action) => void }) {
 }
 
 
-
+/** Main navigation tabs configuration */
 const TABS: { id: Tab; label: string }[] = [
   { id: "floor", label: "🏪 Store Floor" },
   { id: "market", label: "📦 Wholesale" },
   { id: "upgrades", label: "⬆️ Upgrades" },
 ];
 
+/**
+ * App - Root component for Bubble Mart Tycoon
+ * 
+ * Manages the entire game state via useReducer, handles:
+ * - Game loop (TICK actions every 250ms)
+ * - Pause/unpause via keyboard (P/Space)
+ * - Auto-save to localStorage every ~1.2s
+ * - Sound effects triggered by game events
+ * - Toast notification timers
+ * - Tab navigation between floor/market/upgrades
+ * - Modal overlays for game states (start, summary, gameover, etc.)
+ */
 export default function App() {
+  /** Game state and dispatcher from the reducer */
   const [s, dispatch] = useReducer(reducer, undefined, initGame);
+  /** Currently selected tab for main navigation */
   const [tab, setTab] = useState<Tab>("floor");
+  /** Whether a saved game exists (for start screen) */
   const saveExists = useMemo(() => hasSave(), []);
 
   /* ---- game loop ---- */
+  /** Dispatches TICK action every 250ms (4 ticks per second) */
   useEffect(() => {
     const t = setInterval(() => dispatch({ type: "TICK", dt: 0.25 }), 250);
     return () => clearInterval(t);
   }, []);
 
   /* ---- pause hotkeys (P / Space) ---- */
+  /** Handles keyboard input for pausing the game */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName ?? "";
+      // Don't pause when typing in form elements
       if (e.code === "Space" && ["BUTTON", "INPUT", "TEXTAREA", "SELECT", "A"].includes(tag)) return;
       if (e.code === "Space" || e.code === "KeyP") {
         e.preventDefault();
@@ -74,32 +104,42 @@ export default function App() {
   }, [dispatch]);
 
   /* ---- mute sync ---- */
+  /** Syncs muted state with audio system */
   useEffect(() => { setMuted(s.muted); }, [s.muted]);
 
   /* ---- autosave ---- */
+  /** Tracks last save time to throttle localStorage writes */
   const lastSave = useRef(0);
+  /** Auto-saves game state every ~1.2 seconds or on phase changes */
   useEffect(() => {
     if (s.phase === "start") return;
     const now = Date.now();
     if (now - lastSave.current > 1200 || s.phase === "summary" || s.phase === "gameover" || s.phase === "bankrupt") {
       lastSave.current = now;
       try {
+        // Exclude transient UI state (pos, toasts) from save
         localStorage.setItem(SAVE_KEY, JSON.stringify({ ...s, pos: null, toasts: [] }));
       } catch { /* storage full/blocked */ }
     }
   }, [s]);
 
   /* ---- reactive sound effects ---- */
+  /** Tracks previous state for detecting changes that trigger SFX */
   const prev = useRef({ served: 0, level: 1, walkouts: 0, phase: s.phase, lastChing: 0 });
+  /** Plays sound effects based on game state changes */
   useEffect(() => {
     const p = prev.current;
     const now = Date.now();
+    // Play 'ching' on customer served (debounced 300ms)
     if (s.stats.served > p.served && now - p.lastChing > 300) {
       sfx.ching();
       p.lastChing = now;
     }
+    // Play level up sound on level increase
     if (s.level > p.level) sfx.levelup();
+    // Play error sound on customer walkout
     if (s.stats.walkouts > p.walkouts) sfx.error();
+    // Play phase-specific sounds
     if (s.phase !== p.phase) {
       if (s.phase === "summary") sfx.day();
       if (s.phase === "victory") sfx.levelup();
@@ -112,7 +152,9 @@ export default function App() {
   }, [s.stats.served, s.level, s.stats.walkouts, s.phase, s]);
 
   /* ---- toast timers ---- */
+  /** Tracks which toasts have been scheduled for auto-dismissal */
   const timedToasts = useRef(new Set<number>());
+  /** Auto-dismisses toasts after 3.4 seconds */
   useEffect(() => {
     for (const t of s.toasts) {
       if (timedToasts.current.has(t.id)) continue;
@@ -121,24 +163,29 @@ export default function App() {
     }
   }, [s.toasts]);
 
+  /** Whether any market items are on flash sale today */
   const flashToday = s.unlocked.some((id) => s.market[id]?.flash);
 
   return (
     <div className="min-h-screen relative pb-10">
-      {/* ambient clouds */}
+      {/* ambient clouds - decorative background elements */}
       <div className="cloud w-40 h-12" style={{ top: "12%", animationDuration: "75s", animationDelay: "-20s" }} />
       <div className="cloud w-28 h-9" style={{ top: "30%", animationDuration: "95s", animationDelay: "-60s" }} />
       <div className="cloud w-52 h-14" style={{ top: "60%", animationDuration: "110s", animationDelay: "-35s" }} />
 
+      {/* Header bar with cash, day, level, reputation */}
       <TopBar s={s} dispatch={dispatch} />
 
+      {/* Open/Closed toggle sign */}
       <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4">
         <DoorSign s={s} dispatch={dispatch} />
       </div>
 
+      {/* Main content area - two column layout on large screens */}
       <main className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 mt-2 grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] items-start">
-        {/* left column */}
+        {/* left column - main gameplay panels */}
         <div className="flex flex-col gap-3 min-w-0">
+          {/* Tab navigation for floor/market/upgrades */}
           <nav className="flex flex-wrap gap-2">
             {TABS.map((t) => {
               const active = tab === t.id;
@@ -150,6 +197,7 @@ export default function App() {
                   onClick={() => { sfx.click(); setTab(t.id); }}
                 >
                   {t.label}
+                  {/* Flash sale indicator on market tab */}
                   {t.id === "market" && flashToday && (
                     <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-yellow-300 border-2 border-ink flex items-center justify-center text-[10px] font-black anim-wobble">⚡</span>
                   )}
@@ -158,6 +206,7 @@ export default function App() {
             })}
           </nav>
 
+          {/* Active panel content with slide animation on tab change */}
           <div key={tab} className="anim-slide min-w-0">
             {tab === "floor" && <StoreFloor s={s} dispatch={dispatch} />}
             {tab === "market" && <MarketPanel s={s} dispatch={dispatch} />}
@@ -165,13 +214,16 @@ export default function App() {
           </div>
         </div>
 
-        {/* right column */}
+        {/* right column - checkout and info panels (sticky on large screens) */}
         <div className="flex flex-col gap-4 lg:sticky lg:top-[86px]">
+          {/* POS checkout management panel */}
           <CheckoutPanel s={s} dispatch={dispatch} />
 
+          {/* Daily event display */}
           <section className="panel p-4">
             <h2 className="panel-title" style={{ background: "linear-gradient(180deg,#ff9ecb,#f0438c)" }}>Today in Town</h2>
             {s.event ? (
+              // Special event active
               <div className="mt-2 flex items-center gap-3 bg-[#ffe3ee] border-[3px] border-ink rounded-2xl px-3 py-2.5 anim-pop shadow-[0_4px_0_rgba(27,42,94,.15)]">
                 <span className="w-12 h-12 shrink-0 rounded-full bg-white border-[3px] border-ink flex items-center justify-center text-[26px] shadow-[inset_0_-3px_0_rgba(27,42,94,.12)] anim-bob">
                   {s.event.emoji}
@@ -187,6 +239,7 @@ export default function App() {
                 </div>
               </div>
             ) : (
+              // Normal day message
               <div className="mt-2 flex items-center gap-3 bg-[#e3f4ff] border-[3px] border-ink rounded-2xl px-3 py-2.5 shadow-[0_4px_0_rgba(27,42,94,.12)]">
                 <span className="w-12 h-12 shrink-0 rounded-full bg-white border-[3px] border-ink flex items-center justify-center text-[26px] shadow-[inset_0_-3px_0_rgba(27,42,94,.12)]">
                   ☁️
@@ -198,6 +251,7 @@ export default function App() {
             )}
           </section>
 
+          {/* Career statistics panel */}
           <section className="panel p-4">
             <h2 className="panel-title" style={{ background: "linear-gradient(180deg,#c9a6ff,#8b48e8)" }}>Career</h2>
             <div className="mt-2 grid grid-cols-3 gap-2 text-center">
@@ -219,11 +273,12 @@ export default function App() {
         </div>
       </main>
 
+      {/* Footer with game title */}
       <footer className="relative z-10 text-center mt-6 text-[11px] font-black text-ink/50">
         Bubble Mart Tycoon — buy low, shelf it, ring it up 🛒
       </footer>
 
-      {/* toasts */}
+      {/* Toast notifications - positioned fixed top-right */}
       <div className="fixed top-[84px] right-3 z-[70] flex flex-col gap-2 items-end pointer-events-none">
         {s.toasts.map((t) => (
           <div
@@ -236,14 +291,22 @@ export default function App() {
         ))}
       </div>
 
-      {/* overlays */}
+      {/* Modal overlays - conditional rendering based on game phase */}
+      {/* POS minigame overlay during checkout */}
       {s.pos && s.phase === "playing" && <POSGame pos={s.pos} dispatch={dispatch} />}
+      {/* Pause screen overlay */}
       {s.paused && s.phase === "playing" && <PauseScreen s={s} dispatch={dispatch} />}
+      {/* Start screen on first load */}
       {s.phase === "start" && <StartScreen hasSave={saveExists} dispatch={dispatch} />}
+      {/* End of day summary modal */}
       {s.phase === "summary" && <DaySummary s={s} dispatch={dispatch} />}
+      {/* Bankruptcy warning modal */}
       {s.phase === "bankrupt" && <BankruptWarning s={s} dispatch={dispatch} />}
+      {/* Game over modal */}
       {s.phase === "gameover" && <GameOver s={s} dispatch={dispatch} />}
+      {/* Sweepstakes win modal */}
       {s.phase === "sweepstakes" && <Sweepstakes dispatch={dispatch} />}
+      {/* Victory modal (end game win) */}
       {s.phase === "victory" && <Victory s={s} dispatch={dispatch} />}
     </div>
   );
