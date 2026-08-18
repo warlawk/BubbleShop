@@ -135,9 +135,9 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             title={`Registers · ${s.registers}`}
             pips={{ cur: s.registers - 1, max: upgradeMax("register") }}
             desc="Each extra register fits +3 customers in line and adds a cashier lane."
-            extra={`Line capacity: ${queueCap(s.registers)} → ${queueCap(Math.min(s.registers + 1, 3))}`}
+            extra={`Line capacity: ${queueCap(s.registers)} → ${queueCap(Math.min(s.registers + 1, upgradeMax("register") + 1))}`}
             locked={!s.debug && s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
-            cost={upgradeCost("register", s.registers - 1)} maxed={s.registers >= 3} canAfford={s.cash >= upgradeCost("register", s.registers - 1)}
+            cost={upgradeCost("register", s.registers - 1)} maxed={s.registers >= upgradeMax("register") + 1} canAfford={s.cash >= upgradeCost("register", s.registers - 1)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "register" })}
           />
           <Card

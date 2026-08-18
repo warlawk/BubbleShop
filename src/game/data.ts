@@ -3,7 +3,7 @@ import type { DayEvent, ItemDef } from "./types";
 export const SAVE_KEY = "bubble-mart-tycoon-v1";
 export const DAY_LEN = 66; // seconds per day (leisurely clock — plenty of time per customer)
 export const START_CASH = 120;
-export const GOAL = 3500;
+export const GOAL = 10000;
 export const MAX_SLOTS = 16;
 export const START_SLOTS = 4;
 export const CARRY = 5; // units per manual restock click
@@ -22,19 +22,19 @@ export const ITEMS: ItemDef[] = [
   { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.48, retail: 1.75, unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
   { id: "chips",    name: "Crunch Chips",   short: "CRUNCH",grad: ["#ffbe63", "#f57f17"], base: 0.64, retail: 2.25, unlockCost: 0,    reqLevel: 1, tag: "Snacks" },
   { id: "bread",    name: "Bakery Bread",   short: "BAKE",  grad: ["#ffd9a0", "#d9932f"], base: 0.72, retail: 2.25, unlockCost: 0,    reqLevel: 1, tag: "Bakery" },
-  { id: "milk",     name: "Moo Milk",       short: "MOO",   grad: ["#bfe8ff", "#4db8ff"], base: 0.8,  retail: 2.75, unlockCost: 140,  reqLevel: 2, tag: "Dairy" },
-  { id: "candy",    name: "Sugar Bombs",    short: "SUGAR", grad: ["#ff9ecb", "#f0438c"], base: 0.4,  retail: 1.75, unlockCost: 260,  reqLevel: 2, tag: "Sweets" },
-  { id: "coffee",   name: "Rocket Coffee",  short: "ROCKET",grad: ["#c98a4b", "#6f4218"], base: 1.75, retail: 5.0,  unlockCost: 520,  reqLevel: 3, tag: "Drinks" },
-  { id: "soap",     name: "Bubble Soap",    short: "BUBBLE",grad: ["#7fe3d2", "#12a18d"], base: 1.1,  retail: 3.25, unlockCost: 780,  reqLevel: 3, tag: "Home" },
-  { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ffe95e", "#8ac926"], base: 2.25, retail: 6.5,  unlockCost: 1150, reqLevel: 4, tag: "Tech" },
-  { id: "icecream", name: "Frost Bites",    short: "FROST", grad: ["#b7f0e8", "#4fa8e8"], base: 1.45, retail: 4.25, unlockCost: 1600, reqLevel: 4, tag: "Frozen" },
-  { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.3,  retail: 3.75, unlockCost: 2100, reqLevel: 5, tag: "Print" },
-  { id: "juice",    name: "Zing Juice",     short: "ZING",  grad: ["#ffd166", "#ff9f1c"], base: 0.55, retail: 1.95, unlockCost: 180,  reqLevel: 2, tag: "Drinks" },
-  { id: "noodles",  name: "Slurp Noodles",  short: "SLURP", grad: ["#f4a261", "#e76f51"], base: 0.9,  retail: 2.6,  unlockCost: 340,  reqLevel: 2, tag: "Pantry" },
-  { id: "toothpaste", name: "Mint Paste",   short: "MINT",  grad: ["#80ffdb", "#48bfe3"], base: 1.15, retail: 3.1,  unlockCost: 500,  reqLevel: 3, tag: "Home" },
-  { id: "petfood",  name: "Paw Treats",     short: "PAW",   grad: ["#d4a373", "#a98467"], base: 1.55, retail: 4.0,  unlockCost: 900,  reqLevel: 4, tag: "Pets" },
-  { id: "shampoo",  name: "Foam Shampoo",   short: "FOAM",  grad: ["#a8dadc", "#457b9d"], base: 1.9,  retail: 4.9,  unlockCost: 1300, reqLevel: 4, tag: "Home" },
-  { id: "energy",   name: "Turbo Energy",   short: "TURBO", grad: ["#caff04", "#7cb518"], base: 1.45, retail: 4.4,  unlockCost: 1850, reqLevel: 5, tag: "Drinks" },
+  { id: "milk",     name: "Moo Milk",       short: "MOO",   grad: ["#bfe8ff", "#4db8ff"], base: 0.8,  retail: 2.75, unlockCost: 120,  reqLevel: 2, tag: "Dairy" },
+  { id: "candy",    name: "Sugar Bombs",    short: "SUGAR", grad: ["#ff9ecb", "#f0438c"], base: 0.4,  retail: 1.75, unlockCost: 220,  reqLevel: 2, tag: "Sweets" },
+  { id: "coffee",   name: "Rocket Coffee",  short: "ROCKET",grad: ["#c98a4b", "#6f4218"], base: 1.75, retail: 5.0,  unlockCost: 440,  reqLevel: 3, tag: "Drinks" },
+  { id: "soap",     name: "Bubble Soap",    short: "BUBBLE",grad: ["#7fe3d2", "#12a18d"], base: 1.1,  retail: 3.25, unlockCost: 650,  reqLevel: 3, tag: "Home" },
+  { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ffe95e", "#8ac926"], base: 2.25, retail: 6.5,  unlockCost: 950,  reqLevel: 4, tag: "Tech" },
+  { id: "icecream", name: "Frost Bites",    short: "FROST", grad: ["#b7f0e8", "#4fa8e8"], base: 1.45, retail: 4.25, unlockCost: 1350, reqLevel: 4, tag: "Frozen" },
+  { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.3,  retail: 3.75, unlockCost: 1750, reqLevel: 5, tag: "Print" },
+  { id: "juice",    name: "Zing Juice",     short: "ZING",  grad: ["#ffd166", "#ff9f1c"], base: 0.55, retail: 1.95, unlockCost: 150,  reqLevel: 2, tag: "Drinks" },
+  { id: "noodles",  name: "Slurp Noodles",  short: "SLURP", grad: ["#f4a261", "#e76f51"], base: 0.9,  retail: 2.6,  unlockCost: 280,  reqLevel: 2, tag: "Pantry" },
+  { id: "toothpaste", name: "Mint Paste",   short: "MINT",  grad: ["#80ffdb", "#48bfe3"], base: 1.15, retail: 3.1,  unlockCost: 420,  reqLevel: 3, tag: "Home" },
+  { id: "petfood",  name: "Paw Treats",     short: "PAW",   grad: ["#d4a373", "#a98467"], base: 1.55, retail: 4.0,  unlockCost: 760,  reqLevel: 4, tag: "Pets" },
+  { id: "shampoo",  name: "Foam Shampoo",   short: "FOAM",  grad: ["#a8dadc", "#457b9d"], base: 1.9,  retail: 4.9,  unlockCost: 1100, reqLevel: 4, tag: "Home" },
+  { id: "energy",   name: "Turbo Energy",   short: "TURBO", grad: ["#caff04", "#7cb518"], base: 1.45, retail: 4.4,  unlockCost: 1550, reqLevel: 5, tag: "Drinks" },
 ];
 
 export const itemById = (id: string): ItemDef =>
@@ -57,7 +57,7 @@ export const NAMES = [
 
 /* ---------- cost curves ---------- */
 export const slotCost = (owned: number) =>
-  Math.round(180 * Math.pow(1.55, owned - START_SLOTS));
+  Math.round(180 * Math.pow(1.42, owned - START_SLOTS));
 
 export const shelfCost = (count: number) =>
   Math.round(70 * Math.pow(1.3, count));
@@ -78,7 +78,7 @@ export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register
 };
 
 export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register") =>
-  kind === "register" ? 2 : kind === "speed" ? 5 : kind === "capacity" ? 10 : 5;
+  kind === "register" ? 3 : kind === "speed" ? 5 : kind === "capacity" ? 10 : 5;
 
 /* ---------- derived formulas ---------- */
 export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
