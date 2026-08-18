@@ -2,6 +2,12 @@ import type { Dispatch } from "react";
 import type { Action, GameState } from "../game/types";
 import { sfx } from "../game/audio";
 
+/**
+ * DoorSign - Interactive store sign that toggles between CLOSED and OPEN states
+ * Displays day information and allows players to start the business day
+ * @param s - Current game state containing phase and day info
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function DoorSign({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const prep = s.phase === "prep";
   const open = s.phase === "playing";

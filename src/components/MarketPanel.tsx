@@ -4,7 +4,14 @@ import { ITEMS, effPrice, fmt, round2 } from "../game/data";
 import { sfx } from "../game/audio";
 import { IconDown, IconLock, IconUp, ItemChip } from "./bits";
 
+/**
+ * MarketPanel - Wholesale market interface for buying stock products
+ * Shows current market prices, flash deals, and bulk purchase options
+ * @param s - Current game state containing market data, storage, and cash
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function MarketPanel({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
+  /** Purchase stock items, triggering BUY_STOCK action */
   const buy = (itemId: string, qty: number) => {
     if (qty < 1) return;
     sfx.coin();

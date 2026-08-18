@@ -4,10 +4,17 @@ import { fmt, queueCap, round2 } from "../game/data";
 import { sfx } from "../game/audio";
 import { Avatar, IconPerson, IconRegister, PatienceRing } from "./bits";
 
+/**
+ * CheckoutPanel - Displays the checkout lane UI with customer queue and cashier controls
+ * Shows waiting customers, auto-checkout progress, and manual service options
+ * @param s - Current game state containing queue, registers, and cashier info
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function CheckoutPanel({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const cap = queueCap(s.registers);
   const lineFull = s.queue.length >= cap;
 
+  /** Calculate total cart value for a customer based on current prices */
   const custTotal = (cart: { itemId: string; qty: number }[]) =>
     round2(cart.reduce((a, l) => a + l.qty * (s.prices[l.itemId] ?? 0), 0));
 

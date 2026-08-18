@@ -3,6 +3,13 @@ import { itemById } from "../game/data";
 
 /* ---------------- item chip: the color-coded commodity ---------------- */
 
+/**
+ * ItemChip - Color-coded product badge showing item abbreviation
+ * Renders with gradient background based on item definition
+ * @param id - Product ID to display
+ * @param size - Size variant: "sm", "md", or "lg"
+ * @param className - Additional CSS classes
+ */
 export function ItemChip({
   id,
   size = "md",

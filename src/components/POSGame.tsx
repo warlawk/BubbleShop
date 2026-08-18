@@ -4,7 +4,14 @@ import { CHANGE_DENOMS, fmt, itemById, round2 } from "../game/data";
 import { sfx } from "../game/audio";
 import { Avatar, Barcode, IconCheck, ItemChip } from "./bits";
 
+/**
+ * POSGame - Point-of-sale checkout mini-game modal
+ * Handles scanning items and giving correct change under time pressure
+ * @param pos - Current POS state including customer, cart, and timer info
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function POSGame({ pos, dispatch }: { pos: POSState; dispatch: Dispatch<Action> }) {
+  // Handle Escape key to abort POS interaction
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") dispatch({ type: "POS_ABORT" });

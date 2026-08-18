@@ -11,6 +11,12 @@ import {
   IconShelf, IconWrench, ItemChip,
 } from "./bits";
 
+/**
+ * Pips - Visual level indicator showing progress as filled circles
+ * Wraps to multiple rows when max exceeds 8 pips
+ * @param cur - Current level/value
+ * @param max - Maximum possible value
+ */
 function Pips({ cur, max }: { cur: number; max: number }) {
   const cols = max <= 8 ? max : Math.ceil(max / 2); // balance into at most two rows
   const wrapped = max > 8;
@@ -30,6 +36,21 @@ function Pips({ cur, max }: { cur: number; max: number }) {
   );
 }
 
+/**
+ * Card - Reusable upgrade card component showing icon, title, description, and purchase button
+ * Handles locked, maxed, and purchasable states with appropriate styling
+ * @param icon - Icon ReactNode for the card header
+ * @param title - Card title text
+ * @param desc - Description text explaining the upgrade
+ * @param pips - Optional level indicator data
+ * @param cost - Purchase cost (optional for display)
+ * @param maxed - Whether upgrade is at maximum level
+ * @param canAfford - Whether player has enough cash
+ * @param extra - Additional info text displayed in a highlighted box
+ * @param onBuy - Callback function when purchase button is clicked
+ * @param btnLabel - Custom button label (defaults to "Buy")
+ * @param locked - If set, shows lock message instead of purchase button
+ */
 function Card({ icon, title, desc, pips, cost, maxed, canAfford, extra, onBuy, btnLabel, locked }: {
   icon: ReactNode; title: string; desc: string; pips?: { cur: number; max: number };
   cost?: number; maxed: boolean; canAfford: boolean; extra?: string; onBuy: () => void; btnLabel?: string;
@@ -66,6 +87,12 @@ function Card({ icon, title, desc, pips, cost, maxed, canAfford, extra, onBuy, b
   );
 }
 
+/**
+ * UpgradesPanel - Main upgrades interface with Staff, Store, Hype, and Product Suppliers sections
+ * Displays all available upgrades, hiring options, and product unlocks
+ * @param s - Current game state containing upgrade levels, staff counts, cash
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const locked = ITEMS.filter((i) => !s.unlocked.includes(i.id)).sort((a, b) => a.unlockCost - b.unlockCost);
   const wages = dailyWages(s.cashiers, s.stockers);
