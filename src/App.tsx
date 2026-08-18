@@ -1,3 +1,9 @@
+/**
+ * Main Application Component - Bubble Mart Tycoon
+ * Manages game state, rendering, and user interactions
+ * Includes game loop, save system, sound effects, and all UI components
+ */
+
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { clearSave, hasSave, reducer, initGame } from "./game/reducer";
 import { SAVE_KEY, fmt, fmt0 } from "./game/data";
@@ -12,8 +18,13 @@ import { CheckoutPanel } from "./components/CheckoutPanel";
 import { POSGame } from "./components/POSGame";
 import { BankruptWarning, DaySummary, GameOver, PauseScreen, StartScreen, Sweepstakes, Victory } from "./components/Modals";
 
+/** Type for navigation tabs in the main UI */
 type Tab = "floor" | "market" | "upgrades";
 
+/**
+ * AbandonButton - Button to reset the game with confirmation safety
+ * Requires two clicks within 2.5 seconds to prevent accidental restarts
+ */
 function AbandonButton({ dispatch }: { dispatch: (a: Action) => void }) {
   const [armed, setArmed] = useState(false);
   useEffect(() => {
@@ -41,13 +52,17 @@ function AbandonButton({ dispatch }: { dispatch: (a: Action) => void }) {
 }
 
 
-
+/** Navigation tabs configuration with labels and icons */
 const TABS: { id: Tab; label: string }[] = [
   { id: "floor", label: "🏪 Store Floor" },
   { id: "market", label: "📦 Wholesale" },
   { id: "upgrades", label: "⬆️ Upgrades" },
 ];
 
+/**
+ * Main App component - the root of the Bubble Mart Tycoon application
+ * Manages game state via useReducer, handles game loop, saves, sounds, and renders all UI
+ */
 export default function App() {
   const [s, dispatch] = useReducer(reducer, undefined, initGame);
   const [tab, setTab] = useState<Tab>("floor");
@@ -76,7 +91,7 @@ export default function App() {
   /* ---- mute sync ---- */
   useEffect(() => { setMuted(s.muted); }, [s.muted]);
 
-  /* ---- autosave ---- */
+  /* ---- autosave every 1.2s or on phase changes ---- */
   const lastSave = useRef(0);
   useEffect(() => {
     if (s.phase === "start") return;
@@ -89,7 +104,7 @@ export default function App() {
     }
   }, [s]);
 
-  /* ---- reactive sound effects ---- */
+  /* ---- reactive sound effects based on game events ---- */
   const prev = useRef({ served: 0, level: 1, walkouts: 0, phase: s.phase, lastChing: 0 });
   useEffect(() => {
     const p = prev.current;
@@ -111,7 +126,7 @@ export default function App() {
     prev.current = { ...p, served: s.stats.served, level: s.level, walkouts: s.stats.walkouts, phase: s.phase };
   }, [s.stats.served, s.level, s.stats.walkouts, s.phase, s]);
 
-  /* ---- toast timers ---- */
+  /* ---- toast timers - auto-dismiss after 3.4 seconds ---- */
   const timedToasts = useRef(new Set<number>());
   useEffect(() => {
     for (const t of s.toasts) {
