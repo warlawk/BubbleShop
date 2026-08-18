@@ -8,7 +8,7 @@ export const MAX_SLOTS = 16;
 export const START_SLOTS = 4;
 export const CARRY = 5; // units per manual restock click
 export const PATIENCE_SEC = 34;
-export const BASE_SPAWN = 0.26; // customers / sec (early days are quieter — see day ramp)
+export const BASE_SPAWN = 0.42; // customers / sec (early days are quieter — see day ramp)
 export const MAX_STAFF = 4;
 export const DEBUG_FLOOR = 1_000_000; // sandbox cash floor
 export const WAGE_BASE = 35; // 1st employee's daily wage
@@ -78,12 +78,12 @@ export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register
 };
 
 export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register") =>
-  kind === "register" ? 2 : kind === "speed" ? 4 : kind === "capacity" ? 10 : 5;
+  kind === "register" ? 2 : kind === "speed" ? 5 : kind === "capacity" ? 10 : 5;
 
 /* ---------- derived formulas ---------- */
 export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
 export const queueCap = (registers: number) => 5 + 3 * (registers - 1);
-export const autoSeconds = (speedLvl: number) => 4.3 / (1 + 0.3 * speedLvl);
+export const autoSeconds = (speedLvl: number) => 4.0 / (1 + 0.3 * speedLvl);
 export const dailyRent = (slots: number) => 12 + slots * 2;
 /** total daily payroll — sum of the ladder: 1 staff $35, 2 staff $75, 3 staff $120, 4 staff $170 */
 export const dailyWages = (cashiers: number, stockers: number) => {

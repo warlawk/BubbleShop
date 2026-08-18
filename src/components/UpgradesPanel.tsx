@@ -119,7 +119,7 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             title="POS Training"
             pips={{ cur: s.speedLvl, max: upgradeMax("speed") }}
             desc="Cashiers scan 30% faster per level."
-            extra={`${autoSeconds(s.speedLvl).toFixed(1)}s → ${autoSeconds(Math.min(s.speedLvl + 1, 4)).toFixed(1)}s per customer`}
+            extra={`${autoSeconds(s.speedLvl).toFixed(1)}s → ${autoSeconds(Math.min(s.speedLvl + 1, upgradeMax("speed"))).toFixed(1)}s per customer`}
             locked={!s.debug && s.level < 4 ? "Unlocks at store Lv 4 (with cashiers)" : undefined}
             cost={upgradeCost("speed", s.speedLvl)} maxed={s.speedLvl >= upgradeMax("speed")} canAfford={s.cash >= upgradeCost("speed", s.speedLvl)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "speed" })} btnLabel="Train"

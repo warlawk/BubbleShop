@@ -192,7 +192,7 @@ function trySpawn(s: GameState): Shopper | null {
   const pool = [...ids];
   const cart: CartLine[] = [];
   const r1 = Math.random(), r2 = Math.random();
-  let k = 1 + (r1 < 0.62 ? 1 : 0) + (r2 < 0.3 ? 1 : 0);
+  let k = 1 + (r1 < 0.7 ? 1 : 0) + (r2 < 0.4 ? 1 : 0);
   k = Math.min(k, pool.length);
   for (let i = 0; i < k; i++) {
     const total = pool.reduce((a, id) => a + w(id), 0);
@@ -299,11 +299,12 @@ function tick(st: GameState, dt: number): GameState {
   /* --- spawning --- */
   const p = 1 - s.timeLeft / DAY_LEN;
   const curve = 1 + 0.35 * Math.sin(p * Math.PI * 4 - Math.PI / 2);
-  const dayRamp = Math.min(1.15, 0.72 + 0.06 * (s.day - 1)); // quiet opening week
+  const dayRamp = Math.min(1.3, 0.55 + 0.075 * (s.day - 1)); // quiet opening week, busy later on
+  const staffPull = 0.85 + 0.08 * Math.min(s.cashiers, 3); // staffed tills pull extra shoppers; solo stays gentle
   const traffic =
-    BASE_SPAWN * curve * dayRamp *
-    (0.55 + s.rep * 0.18) *
-    (1 + 0.12 * s.marketingLvl) *
+    BASE_SPAWN * curve * dayRamp * staffPull *
+    (0.45 + s.rep * 0.22) *
+    (1 + 0.15 * s.marketingLvl) *
     (1 + 0.05 * (s.level - 1)) *
     (s.event?.traffic ?? 1);
   s.spawnAcc += dt * traffic;
