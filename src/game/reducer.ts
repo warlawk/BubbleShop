@@ -1,3 +1,8 @@
+/**
+ * Game State Reducer - Core game logic and state management
+ * Handles all game actions including shopping, staffing, upgrades, and the checkout mini-game
+ */
+
 import {
   BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, DEBUG_FLOOR, EVENTS, GOAL, ITEMS,
   MAX_SLOTS, MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK,
@@ -10,14 +15,22 @@ import type {
   Action, CartLine, DayStats, GameState, MarketInfo, POSState, Queued, Shopper,
 } from "./types";
 
+/** Create an empty day statistics object for tracking daily performance */
 const emptyStats = (): DayStats => ({
   revenue: 0, goods: 0, wages: 0, rent: 0, tips: 0, served: 0, walkouts: 0,
 });
 
+/** Display names for cashiers in hire notifications */
 const CASHIER_NAMES = ["Cassie", "Bobby", "Rex", "Dot"];
+/** Display names for stockers in hire notifications */
 const STOCKER_NAMES = ["Stu", "Mona", "Fizz", "Fay"];
 
-/** spend money; in debug mode purchases are free and cash snaps back to the floor */
+/**
+ * Deduct money from cash, respecting debug mode's infinite money
+ * @param s - Current game state (mutated in place)
+ * @param cost - Amount to deduct
+ * @returns true if payment succeeded (always true in debug mode)
+ */
 function pay(s: GameState, cost: number): boolean {
   if (!s.debug && s.cash + 1e-9 < cost) return false;
   s.cash = round2(s.cash - cost);
@@ -25,9 +38,18 @@ function pay(s: GameState, cost: number): boolean {
   return true;
 }
 
-/** true if a level gate blocks this (debug mode lifts all gates) */
+/**
+ * Check if a store level gate blocks this action
+ * @param s - Current game state
+ * @param lvl - Required level to pass the gate
+ * @returns true if blocked (debug mode bypasses all gates)
+ */
 const gated = (s: GameState, lvl: number) => !s.debug && s.level < lvl;
 
+/**
+ * Create a fresh new game state with default starting values
+ * @returns Initial GameState for a new game
+ */
 function fresh(): GameState {
   const market: Record<string, MarketInfo> = {};
   const storage: Record<string, number> = {};
@@ -61,6 +83,11 @@ function fresh(): GameState {
   };
 }
 
+/**
+ * Initialize game state - loads from localStorage if available, otherwise creates fresh game
+ * Validates and sanitizes saved state to ensure compatibility
+ * @returns GameState ready for play
+ */
 export function initGame(): GameState {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
@@ -89,20 +116,38 @@ export function initGame(): GameState {
   return fresh();
 }
 
+/**
+ * Check if a saved game exists in localStorage
+ * @returns true if save data is available
+ */
 export function hasSave(): boolean {
   try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; }
 }
 
+/**
+ * Delete any existing save data from localStorage
+ */
 export function clearSave() {
   try { localStorage.removeItem(SAVE_KEY); } catch { /* ignore */ }
 }
 
 /* ---------------- helpers (mutate a draft copy) ---------------- */
 
+/**
+ * Add a toast notification to the queue
+ * @param s - Current game state (mutated in place)
+ * @param text - Message to display
+ * @param kind - Notification type for styling
+ */
 function toast(s: GameState, text: string, kind: "good" | "bad" | "info" = "info") {
   s.toasts = [...s.toasts.slice(-3), { id: s.nextId++, text, kind }];
 }
 
+/**
+ * Add experience points and check for level-up bonuses
+ * @param s - Current game state (mutated in place)
+ * @param n - XP amount to add
+ */
 function addXp(s: GameState, n: number) {
   s.xp += n;
   const { level } = levelFromXp(s.xp);
@@ -114,10 +159,20 @@ function addXp(s: GameState, n: number) {
   }
 }
 
+/**
+ * Check if player has reached the victory goal amount
+ * @param s - Current game state (mutated in place if victory achieved)
+ */
 function checkVictory(s: GameState) {
   if (!s.endless && s.phase === "playing" && s.cash >= GOAL) s.phase = "victory";
 }
 
+/**
+ * Return excess items to storage after restocking shelves
+ * @param s - Current game state (mutated in place)
+ * @param itemId - Product ID to restock
+ * @param qty - Quantity attempting to place on shelves
+ */
 function giveBack(s: GameState, itemId: string, qty: number) {
   let left = qty;
   const cap = shelfCapacity(s.capLvl);
@@ -132,10 +187,22 @@ function giveBack(s: GameState, itemId: string, qty: number) {
   if (left > 0) s.storage[itemId] = (s.storage[itemId] ?? 0) + left;
 }
 
+/**
+ * Return all cart items back to shelves/storage (e.g., on walkout)
+ * @param s - Current game state (mutated in place)
+ * @param cart - Items to return
+ */
 function returnCart(s: GameState, cart: CartLine[]) {
   for (const l of cart) giveBack(s, l.itemId, l.qty);
 }
 
+/**
+ * Take items from shelves for a customer's cart
+ * @param s - Current game state (mutated in place)
+ * @param itemId - Product ID to take
+ * @param qty - Quantity requested
+ * @returns Actual quantity taken (may be less than requested)
+ */
 function takeFromShelves(s: GameState, itemId: string, qty: number): number {
   let need = qty;
   const holders = s.shelves
@@ -150,6 +217,13 @@ function takeFromShelves(s: GameState, itemId: string, qty: number): number {
   return qty - need;
 }
 
+/**
+ * Process a completed sale - update cash, stats, XP, and reputation
+ * @param s - Current game state (mutated in place)
+ * @param cust - Customer with cart items
+ * @param manual - Whether this was manual checkout (affects tips/reputation)
+ * @param tip - Tip amount received
+ */
 function completeSale(s: GameState, cust: { cart: CartLine[] }, manual: boolean, tip: number) {
   let total = 0;
   let units = 0;
@@ -169,6 +243,11 @@ function completeSale(s: GameState, cust: { cart: CartLine[] }, manual: boolean,
   checkVictory(s);
 }
 
+/**
+ * Attempt to spawn a new customer with weighted random product selection
+ * @param s - Current game state (mutated in place for shelf updates)
+ * @returns New Shopper or null if no products available
+ */
 function trySpawn(s: GameState): Shopper | null {
   const avail: Record<string, number> = {};
   for (const sh of s.shelves) {
@@ -222,6 +301,11 @@ function trySpawn(s: GameState): Shopper | null {
   };
 }
 
+/**
+ * Resolve a successful POS transaction - complete sale and show toast
+ * @param s - Current game state (mutated in place)
+ * @param tip - Tip amount earned
+ */
 function resolvePosSuccess(s: GameState, tip: number) {
   const p = s.pos!;
   const cart = p.lines.map((l) => ({ itemId: l.itemId, qty: l.qty }));
@@ -241,6 +325,13 @@ function resolvePosSuccess(s: GameState, tip: number) {
 
 /* ---------------- tick ---------------- */
 
+/**
+ * Main game tick function - processes all time-based game mechanics
+ * Handles spawning, customer patience, checkout, restocking, and day transitions
+ * @param st - Current game state
+ * @param dt - Delta time in seconds since last tick
+ * @returns Updated GameState (or unchanged if paused/not playing)
+ */
 function tick(st: GameState, dt: number): GameState {
   if (st.phase !== "playing" || st.paused) return st;
   const s: GameState = {
@@ -385,6 +476,11 @@ function tick(st: GameState, dt: number): GameState {
 
 /* ---------------- day rollover ---------------- */
 
+/**
+ * Start a new day - reset stats, update market prices, and check for events
+ * @param st - Current game state at end of day
+ * @returns Updated GameState for the new day in prep phase
+ */
 function startNextDay(st: GameState): GameState {
   const s: GameState = {
     ...st, storage: { ...st.storage }, stats: emptyStats(),
@@ -420,6 +516,13 @@ function startNextDay(st: GameState): GameState {
 
 /* ---------------- main reducer ---------------- */
 
+/**
+ * Main game state reducer - handles all actions that modify game state
+ * Implements the core game logic for shopping, staffing, upgrades, and POS mini-game
+ * @param st - Current game state
+ * @param a - Action to process
+ * @returns New GameState after applying the action
+ */
 export function reducer(st: GameState, a: Action): GameState {
   switch (a.type) {
     case "TICK":
