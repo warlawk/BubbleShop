@@ -4,6 +4,7 @@ import { GOAL, dailyRent, dailyWages, fmt, fmt0, round2 } from "../game/data";
 import { setMuted, sfx } from "../game/audio";
 import { IconPause, IconTrophy, StarRow } from "./bits";
 
+/** Overlay component for full-screen modal backgrounds with gradient */
 function Overlay({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-0 z-[55] overflow-y-auto bg-gradient-to-b from-[#3aa0f0]/90 via-[#5fb9f5]/92 to-[#9fdcff]/95">
@@ -14,6 +15,11 @@ function Overlay({ children }: { children: ReactNode }) {
 
 /* ---------------- start screen ---------------- */
 
+/**
+ * StartScreen - Initial game menu with new game/continue options and tutorial cards
+ * @param hasSave - Whether a saved game exists in localStorage
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function StartScreen({ hasSave, dispatch }: { hasSave: boolean; dispatch: Dispatch<Action> }) {
   return (
     <Overlay>
@@ -74,6 +80,12 @@ export function StartScreen({ hasSave, dispatch }: { hasSave: boolean; dispatch:
 
 /* ---------------- pause ---------------- */
 
+/**
+ * PauseScreen - Modal overlay shown when game is paused
+ * Displays game tips and resume/mute controls
+ * @param s - Current game state containing day, cash, and mute status
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function PauseScreen({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   return (
     <div className="fixed inset-0 z-[65] bg-ink/70 flex items-center justify-center p-4">
@@ -119,6 +131,12 @@ export function PauseScreen({ s, dispatch }: { s: GameState; dispatch: Dispatch<
 
 /* ---------------- overdraft warning ---------------- */
 
+/**
+ * BankruptWarning - Modal shown when player goes into negative cash
+ * Offers a one-day grace period or game over option
+ * @param s - Current game state containing cash, staff, and slot info
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function BankruptWarning({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const owed = Math.abs(s.cash);
   const tomorrow = dailyWages(s.cashiers, s.stockers) + dailyRent(s.slots);
@@ -160,8 +178,15 @@ export function BankruptWarning({ s, dispatch }: { s: GameState; dispatch: Dispa
 
 /* ---------------- day summary ---------------- */
 
+/**
+ * DaySummary - End-of-day results modal showing profit/loss breakdown
+ * Displays daily stats, reputation changes, and prompts for next day
+ * @param s - Current game state containing stats, reputation, and day info
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function DaySummary({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const profit = round2(s.stats.revenue + s.stats.tips - s.stats.goods - s.stats.wages - s.stats.rent);
+  /** Helper to render a stat row with label and value */
   const row = (label: string, val: string, neg = false) => (
     <div className="flex items-center justify-between text-sm font-extrabold">
       <span className="text-ink-soft">{label}</span>
@@ -205,6 +230,12 @@ export function DaySummary({ s, dispatch }: { s: GameState; dispatch: Dispatch<A
 
 /* ---------------- game over ---------------- */
 
+/**
+ * GameOver - Final screen when player goes bankrupt twice
+ * Shows lifetime statistics and offers restart option
+ * @param s - Current game state containing lifetime stats and day count
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function GameOver({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   return (
     <div className="fixed inset-0 z-[55] bg-ink/70 flex items-center justify-center p-4">
@@ -229,7 +260,13 @@ export function GameOver({ s, dispatch }: { s: GameState; dispatch: Dispatch<Act
 
 /* ---------------- sweepstakes ---------------- */
 
+/**
+ * Sweepstakes - Random event modal awarding $200 bonus
+ * Features animated confetti celebration effect
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function Sweepstakes({ dispatch }: { dispatch: Dispatch<Action> }) {
+  /** Generate random confetti pieces with varied positions and timing */
   const pieces = useMemo(
     () =>
       Array.from({ length: 36 }).map((_, i) => ({
@@ -268,7 +305,14 @@ export function Sweepstakes({ dispatch }: { dispatch: Dispatch<Action> }) {
 
 /* ---------------- victory ---------------- */
 
+/**
+ * Victory - Endgame celebration modal when player reaches GOAL amount
+ * Shows achievement summary with confetti and offers continue/new game options
+ * @param s - Current game state containing lifetime stats
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function Victory({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
+  /** Generate random confetti pieces with varied positions and timing */
   const pieces = useMemo(
     () =>
       Array.from({ length: 40 }).map((_, i) => ({

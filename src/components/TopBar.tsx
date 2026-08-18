@@ -4,6 +4,11 @@ import { DAY_LEN, GOAL, fmt, fmt0, levelFromXp } from "../game/data";
 import { setMuted, sfx } from "../game/audio";
 import { IconCart, IconPause, IconPlay, IconSoundOff, IconSoundOn, IconSun, IconTrophy, StarRow } from "./bits";
 
+/**
+ * Format game time into 12-hour clock display (e.g., "8:30 AM")
+ * @param timeLeft - Seconds remaining in the day
+ * @returns Formatted time string with AM/PM
+ */
 function clockText(timeLeft: number) {
   const f = 1 - timeLeft / DAY_LEN;
   const hf = 8 + 12 * f;
@@ -14,6 +19,13 @@ function clockText(timeLeft: number) {
   return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
 }
 
+/**
+ * TopBar - Header bar showing game stats, progress bars, and controls
+ * Displays cash, reputation, level, goal progress, day/time, pause and mute buttons
+ * Includes secret sandbox mode activation gesture
+ * @param s - Current game state
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function TopBar({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const dayFrac = 1 - s.timeLeft / DAY_LEN;
   const { into, need } = levelFromXp(s.xp);

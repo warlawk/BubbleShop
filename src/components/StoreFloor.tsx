@@ -7,6 +7,12 @@ import {
 import { sfx } from "../game/audio";
 import { IconLock, IconShelf, ItemChip } from "./bits";
 
+/**
+ * Calculate demand badge based on price ratio to retail value
+ * @param price - Current shelf price
+ * @param retail - Base retail value
+ * @returns Badge label and CSS class for display styling
+ */
 function demandBadge(price: number, retail: number) {
   const r = price / retail;
   if (r < 0.95) return { label: "🔥 hot deal", cls: "bg-red-100 text-red-600 border-red-300" };
@@ -15,6 +21,13 @@ function demandBadge(price: number, retail: number) {
   return { label: "☠️ rip-off", cls: "bg-red-200 text-red-800 border-red-400" };
 }
 
+/**
+ * ShelfCard - Individual shelf display with stock level, price controls, and restock button
+ * @param s - Current game state
+ * @param shelf - Shelf data including item, stock, and slot info
+ * @param dispatch - Redux-style dispatch function for game actions
+ * @param onPick - Callback to open product picker for this shelf
+ */
 function ShelfCard({ s, shelf, dispatch, onPick }: {
   s: GameState; shelf: Shelf; dispatch: Dispatch<Action>; onPick: (id: number) => void;
 }) {
@@ -103,6 +116,12 @@ function ShelfCard({ s, shelf, dispatch, onPick }: {
   );
 }
 
+/**
+ * StoreFloor - Main store management view showing all shelves and floor spaces
+ * Handles shelf placement, product assignment, pricing, and restocking
+ * @param s - Current game state containing shelves, slots, inventory
+ * @param dispatch - Redux-style dispatch function for game actions
+ */
 export function StoreFloor({ s, dispatch }: { s: GameState; dispatch: Dispatch<Action> }) {
   const [pickFor, setPickFor] = useState<number | null>(null);
   const totalStock = s.shelves.reduce((a, sh) => a + sh.stock, 0);
