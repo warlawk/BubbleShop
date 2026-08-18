@@ -20,8 +20,11 @@ export const MAX_SLOTS = 16;
 /** Starting number of floor slots */
 export const START_SLOTS = 4;
 
-/** Units carried per manual restock click */
+/** Units carried per manual restock click - increases with capacity upgrades */
 export const CARRY = 5;
+
+/** Manual restock capacity by upgrade tier: base=5, tier1=10, tier2=25 */
+export const MANUAL_CARRY_TIERS = [5, 10, 25];
 
 /** Seconds until a queued customer loses all patience */
 export const PATIENCE_SEC = 34;
@@ -61,26 +64,26 @@ export const nextWage = (totalStaff: number) => wageOf(totalStaff + 1);
 /** All available products in the game with their properties */
 export const ITEMS: ItemDef[] = [
   // Level 1 - Starter items (no unlock cost)
-  { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.48, retail: 1.75, unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
-  { id: "chips",    name: "Crunch Chips",   short: "CRUNCH",grad: ["#ffbe63", "#f57f17"], base: 0.64, retail: 2.25, unlockCost: 0,    reqLevel: 1, tag: "Snacks" },
-  { id: "bread",    name: "Bakery Bread",   short: "BAKE",  grad: ["#ffd9a0", "#d9932f"], base: 0.72, retail: 2.25, unlockCost: 0,    reqLevel: 1, tag: "Bakery" },
+  { id: "soda",     name: "Fizz Cola",      short: "FIZZ",  grad: ["#ff7b7b", "#e5263a"], base: 0.48, retail: 2.25, unlockCost: 0,    reqLevel: 1, tag: "Drinks" },
+  { id: "chips",    name: "Crunch Chips",   short: "CRUNCH",grad: ["#ffbe63", "#f57f17"], base: 0.64, retail: 2.75, unlockCost: 0,    reqLevel: 1, tag: "Snacks" },
+  { id: "bread",    name: "Bakery Bread",   short: "BAKE",  grad: ["#ffd9a0", "#d9932f"], base: 0.72, retail: 2.75, unlockCost: 0,    reqLevel: 1, tag: "Bakery" },
   // Level 2 items
-  { id: "milk",     name: "Moo Milk",       short: "MOO",   grad: ["#bfe8ff", "#4db8ff"], base: 0.8,  retail: 2.75, unlockCost: 120,  reqLevel: 2, tag: "Dairy" },
-  { id: "candy",    name: "Sugar Bombs",    short: "SUGAR", grad: ["#ff9ecb", "#f0438c"], base: 0.4,  retail: 1.75, unlockCost: 220,  reqLevel: 2, tag: "Sweets" },
-  { id: "juice",    name: "Zing Juice",     short: "ZING",  grad: ["#7ade6a", "#2f9e44"], base: 0.55, retail: 1.95, unlockCost: 150,  reqLevel: 2, tag: "Drinks" },
-  { id: "noodles",  name: "Slurp Noodles",  short: "SLURP", grad: ["#f4a261", "#e76f51"], base: 0.9,  retail: 2.6,  unlockCost: 280,  reqLevel: 2, tag: "Pantry" },
+  { id: "milk",     name: "Moo Milk",       short: "MOO",   grad: ["#bfe8ff", "#4db8ff"], base: 0.8,  retail: 3.25, unlockCost: 120,  reqLevel: 2, tag: "Dairy" },
+  { id: "candy",    name: "Sugar Bombs",    short: "SUGAR", grad: ["#ff9ecb", "#f0438c"], base: 0.4,  retail: 2.25, unlockCost: 220,  reqLevel: 2, tag: "Sweets" },
+  { id: "juice",    name: "Zing Juice",     short: "ZING",  grad: ["#7ade6a", "#2f9e44"], base: 0.55, retail: 2.45, unlockCost: 150,  reqLevel: 2, tag: "Drinks" },
+  { id: "noodles",  name: "Slurp Noodles",  short: "SLURP", grad: ["#f4a261", "#e76f51"], base: 0.9,  retail: 3.1,  unlockCost: 280,  reqLevel: 2, tag: "Pantry" },
   // Level 3 items
-  { id: "coffee",   name: "Rocket Coffee",  short: "ROCKET",grad: ["#c98a4b", "#6f4218"], base: 1.75, retail: 5.0,  unlockCost: 440,  reqLevel: 3, tag: "Drinks" },
-  { id: "soap",     name: "Bubble Soap",    short: "BUBBLE",grad: ["#7fe3d2", "#12a18d"], base: 1.1,  retail: 3.25, unlockCost: 650,  reqLevel: 3, tag: "Home" },
-  { id: "toothpaste", name: "Mint Paste",   short: "MINT",  grad: ["#80ffdb", "#48bfe3"], base: 1.15, retail: 3.1,  unlockCost: 420,  reqLevel: 3, tag: "Home" },
+  { id: "coffee",   name: "Rocket Coffee",  short: "ROCKET",grad: ["#c98a4b", "#6f4218"], base: 1.75, retail: 5.5,  unlockCost: 440,  reqLevel: 3, tag: "Drinks" },
+  { id: "soap",     name: "Bubble Soap",    short: "BUBBLE",grad: ["#7fe3d2", "#12a18d"], base: 1.1,  retail: 3.75, unlockCost: 650,  reqLevel: 3, tag: "Home" },
+  { id: "toothpaste", name: "Mint Paste",   short: "MINT",  grad: ["#80ffdb", "#48bfe3"], base: 1.15, retail: 3.6,  unlockCost: 420,  reqLevel: 3, tag: "Home" },
   // Level 4 items
-  { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ff922b", "#e8590c"], base: 2.25, retail: 6.5,  unlockCost: 950,  reqLevel: 4, tag: "Tech" },
-  { id: "icecream", name: "Chomp Bites",    short: "CHOMP", grad: ["#e5383b", "#6a040f"], base: 1.45, retail: 4.25, unlockCost: 1350, reqLevel: 4, tag: "Frozen" },
-  { id: "petfood",  name: "Paw Treats",     short: "PAW",   grad: ["#d4a373", "#a98467"], base: 1.55, retail: 4.0,  unlockCost: 760,  reqLevel: 4, tag: "Pets" },
-  { id: "shampoo",  name: "Foam Shampoo",   short: "FOAM",  grad: ["#a8dadc", "#457b9d"], base: 1.9,  retail: 4.9,  unlockCost: 1100, reqLevel: 4, tag: "Home" },
+  { id: "battery",  name: "Volt Cells",     short: "VOLT",  grad: ["#ff922b", "#e8590c"], base: 2.25, retail: 7.0,  unlockCost: 950,  reqLevel: 4, tag: "Tech" },
+  { id: "icecream", name: "Chomp Bites",    short: "CHOMP", grad: ["#e5383b", "#6a040f"], base: 1.45, retail: 4.75, unlockCost: 1350, reqLevel: 4, tag: "Frozen" },
+  { id: "petfood",  name: "Paw Treats",     short: "PAW",   grad: ["#d4a373", "#a98467"], base: 1.55, retail: 4.5,  unlockCost: 760,  reqLevel: 4, tag: "Pets" },
+  { id: "shampoo",  name: "Foam Shampoo",   short: "FOAM",  grad: ["#a8dadc", "#457b9d"], base: 1.9,  retail: 5.4,  unlockCost: 1100, reqLevel: 4, tag: "Home" },
   // Level 5 items (endgame products)
-  { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.3,  retail: 3.75, unlockCost: 1750, reqLevel: 5, tag: "Print" },
-  { id: "energy",   name: "Turbo Energy",   short: "TURBO", grad: ["#ffe45e", "#e8a800"], base: 1.45, retail: 4.4,  unlockCost: 1550, reqLevel: 5, tag: "Drinks" },
+  { id: "magazine", name: "Glossy Mags",    short: "GLOSS", grad: ["#c39bff", "#7d4dff"], base: 1.3,  retail: 4.25, unlockCost: 1750, reqLevel: 5, tag: "Print" },
+  { id: "energy",   name: "Turbo Energy",   short: "TURBO", grad: ["#ffe45e", "#e8a800"], base: 1.45, retail: 4.9,  unlockCost: 1550, reqLevel: 5, tag: "Drinks" },
 ];
 
 /**
@@ -144,18 +147,19 @@ export const STAFF_UNLOCK: Record<"cashier" | "stocker", number> = { cashier: 4,
  * Calculate upgrade cost based on type and current level
  * Each upgrade type has its own base cost and growth multiplier
  */
-export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register", lvl: number) => {
+export const upgradeCost = (kind: "speed" | "capacity" | "marketing" | "register" | "manualCarry", lvl: number) => {
   switch (kind) {
-    case "speed":     return Math.round(187 * Math.pow(1.7, lvl));   // Faster checkout
-    case "capacity":  return Math.round(68 * Math.pow(1.3, lvl));    // More shelf space
-    case "marketing": return Math.round(221 * Math.pow(1.75, lvl));  // More customers
-    case "register":  return Math.round(272 * Math.pow(1.8, lvl));   // Larger queue
+    case "speed":       return Math.round(187 * Math.pow(1.7, lvl));   // Faster checkout
+    case "capacity":    return Math.round(65 * Math.pow(1.35, lvl));   // More shelf space
+    case "marketing":   return Math.round(221 * Math.pow(1.75, lvl));  // More customers
+    case "register":    return Math.round(272 * Math.pow(1.8, lvl));   // Larger queue
+    case "manualCarry": return Math.round(95 * Math.pow(1.4, lvl));    // Bigger carry capacity
   }
 };
 
 /** Maximum level for each upgrade type */
-export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register") =>
-  kind === "register" ? 3 : kind === "speed" ? 5 : kind === "capacity" ? 10 : 5;
+export const upgradeMax = (kind: "speed" | "capacity" | "marketing" | "register" | "manualCarry") =>
+  kind === "register" ? 3 : kind === "speed" ? 5 : kind === "capacity" ? 10 : kind === "manualCarry" ? 2 : 5;
 
 /* ==================== Derived Game Values ==================== */
 
@@ -166,7 +170,7 @@ export const shelfCapacity = (capLvl: number) => 10 + 5 * capLvl;
 export const queueCap = (registers: number) => 5 + 3 * (registers - 1);
 
 /** Calculate time (in seconds) for automatic checkout per customer */
-export const autoSeconds = (speedLvl: number) => 4.0 / (1 + 0.3 * speedLvl);
+export const autoSeconds = (speedLvl: number) => 3.5 / (1 + 0.3 * speedLvl);
 
 /** Calculate daily rent based on store size (slots) */
 export const dailyRent = (slots: number) => 12 + slots * 2;
