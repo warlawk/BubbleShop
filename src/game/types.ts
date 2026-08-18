@@ -259,6 +259,8 @@ export interface GameState {
   capLvl: number;
   /** Marketing upgrade level */
   marketingLvl: number;
+  /** Manual carry capacity upgrade tier (0=base, 1=tier1, 2=tier2) */
+  manualCarryLvl: number;
   /** Number of checkout registers */
   registers: number;
   /** Customers currently browsing */
@@ -327,7 +329,7 @@ export type Action =
   // Hire a staff member
   | { type: "HIRE"; kind: "cashier" | "stocker" }
   // Purchase an upgrade
-  | { type: "UPGRADE"; kind: "speed" | "capacity" | "marketing" | "register" }
+  | { type: "UPGRADE"; kind: "speed" | "capacity" | "marketing" | "register" | "manualCarry" }
   // Unlock a new product for sale
   | { type: "UNLOCK_ITEM"; itemId: string }
   // Start serving next customer in queue manually

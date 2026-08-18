@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Dispatch } from "react";
 import type { Action, GameState } from "../game/types";
 import {
-  ITEMS, MAX_SLOTS, MAX_STAFF, STAFF_UNLOCK, autoSeconds, dailyWages, fmt,
+  ITEMS, MANUAL_CARRY_TIERS, MAX_SLOTS, MAX_STAFF, STAFF_UNLOCK, autoSeconds, dailyWages, fmt,
   hireCost, nextWage, queueCap, shelfCapacity, slotCost, upgradeCost, upgradeMax,
 } from "../game/data";
 import { sfx } from "../game/audio";
@@ -184,6 +184,15 @@ export function UpgradesPanel({ s, dispatch }: { s: GameState; dispatch: Dispatc
             extra={`${shelfCapacity(s.capLvl)} → ${shelfCapacity(Math.min(s.capLvl + 1, upgradeMax("capacity")))} per shelf`}
             cost={upgradeCost("capacity", s.capLvl)} maxed={s.capLvl >= upgradeMax("capacity")} canAfford={s.cash >= upgradeCost("capacity", s.capLvl)}
             onBuy={() => dispatch({ type: "UPGRADE", kind: "capacity" })}
+          />
+          <Card
+            icon={<IconBox size={18} />}
+            title="Manual Carry"
+            pips={{ cur: s.manualCarryLvl, max: upgradeMax("manualCarry") }}
+            desc="Bigger arms: carry more units per manual restock click."
+            extra={`Carry: ${MANUAL_CARRY_TIERS[s.manualCarryLvl] ?? 5} → ${MANUAL_CARRY_TIERS[Math.min(s.manualCarryLvl + 1, upgradeMax("manualCarry"))]} per click`}
+            cost={upgradeCost("manualCarry", s.manualCarryLvl)} maxed={s.manualCarryLvl >= upgradeMax("manualCarry")} canAfford={s.cash >= upgradeCost("manualCarry", s.manualCarryLvl)}
+            onBuy={() => dispatch({ type: "UPGRADE", kind: "manualCarry" })}
           />
         </div>
       </div>

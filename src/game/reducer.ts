@@ -5,7 +5,7 @@
 
 import {
   BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, DEBUG_FLOOR, EVENTS, GOAL, ITEMS,
-  MAX_SLOTS, MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK,
+  MANUAL_CARRY_TIERS, MAX_SLOTS, MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK,
   START_CASH, START_SLOTS, autoSeconds, clamp, dailyRent, dailyWages,
   demandFactor, effPrice, fmt, hireCost, itemById, levelFromXp, maxPrice,
   MIN_PRICE, queueCap, round2, shelfCapacity, shelfCost, slotCost, snap25,
@@ -74,7 +74,7 @@ function fresh(): GameState {
       { id: 2, slot: 1, itemId: "chips", stock: 8 },
       { id: 3, slot: 2, itemId: "bread", stock: 8 },
     ],
-    cashiers: 0, stockers: 0, speedLvl: 0, capLvl: 0, marketingLvl: 0, registers: 1,
+    cashiers: 0, stockers: 0, speedLvl: 0, capLvl: 0, marketingLvl: 0, manualCarryLvl: 0, registers: 1,
     shoppers: [], queue: [], pos: null,
     spawnAcc: 0, autoAcc: 0, stockAcc: 0, nextId: 100,
     stats: emptyStats(),
@@ -667,7 +667,8 @@ export function reducer(st: GameState, a: Action): GameState {
       const sh = s.shelves.find((x) => x.id === a.shelfId);
       if (!sh || !sh.itemId) return st;
       const cap = shelfCapacity(s.capLvl);
-      const take = Math.min(CARRY, cap - sh.stock, s.storage[sh.itemId] ?? 0);
+      const carryAmount = MANUAL_CARRY_TIERS[st.manualCarryLvl] ?? CARRY;
+      const take = Math.min(carryAmount, cap - sh.stock, s.storage[sh.itemId] ?? 0);
       if (take <= 0) return st;
       sh.stock += take;
       s.storage[sh.itemId] -= take;
@@ -720,7 +721,7 @@ export function reducer(st: GameState, a: Action): GameState {
       }
       const lvlOf = {
         speed: s.speedLvl, capacity: s.capLvl, marketing: s.marketingLvl,
-        register: s.registers - 1,
+        register: s.registers - 1, manualCarry: s.manualCarryLvl,
       }[a.kind];
       const max = upgradeMax(a.kind);
       if (lvlOf >= max) return st;
@@ -733,6 +734,7 @@ export function reducer(st: GameState, a: Action): GameState {
       if (a.kind === "capacity") { s.capLvl++; toast(s, "📚 Deeper shelves — +5 capacity each!", "good"); }
       if (a.kind === "marketing") { s.marketingLvl++; toast(s, "📣 Marketing blast — more feet on Main Street!", "good"); }
       if (a.kind === "register") { s.registers++; toast(s, "🧾 New cash register installed — bigger line capacity!", "good"); }
+      if (a.kind === "manualCarry") { s.manualCarryLvl++; toast(s, `🎒 Bigger arms — manual restock now carries ${MANUAL_CARRY_TIERS[s.manualCarryLvl]}!`, "good"); }
       return s;
     }
 
