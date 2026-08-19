@@ -7,12 +7,12 @@ Buy low at the wholesale market, shelf your stock, flip the sign, and ring up th
 
 ## Features
 
-- **Daily price market** — every product's wholesale price drifts around a baseline, with trends and daily flash deals
-- **Morning prep phase** — restock, buy, hire, and price before flipping the hanging OPEN/CLOSED door sign
-- **POS minigame** — tap the barcodes in each cart, then hand back exact change (quarters included) before the timer runs out
-- **Staff & automation** — cashiers auto-ring the line on a timer, stockers haul boxes, wages climb a shared $35→$40→$45… ladder
-- **Expansion path** — floor-space leases, shelf capacity, extra registers, POS training, marketing, and 13 unlockable suppliers
-- **Events** — heatwaves, paydays, tourist buses; a guaranteed Day-5 sweepstakes with a 0.5% scratch-off chance after
+- **Daily price market** — wholesale price drifts around a baseline, with trends and daily flash deals
+- **Morning prep phase** — restock, buy, hire, and price before flipping the door sign OPEN
+- **POS minigame** — tap the barcodes in each cart, then hand back exact change before the timer runs out
+- **Staff & automation** — cashiers auto-ring the line on a timer, stockers haul boxes, wages climb a shared ladder
+- **Expansion path** — floor-space leases, shelf capacity, extra registers, POS training, marketing, and 16 unlockable suppliers
+- **Events** — heatwaves, paydays, tourist buses, sweepstakes
 
 ## Tech
 
