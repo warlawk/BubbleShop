@@ -6,7 +6,7 @@
 import {
   BASE_SPAWN, CARRY, CHANGE_DENOMS, DAY_LEN, DEBUG_FLOOR, EVENTS, GOAL, ITEMS,
   MANUAL_CARRY_TIERS, MAX_SLOTS, MAX_STAFF, NAMES, PATIENCE_SEC, SAVE_KEY, STAFF_UNLOCK,
-  START_CASH, START_SLOTS, autoSeconds, clamp, dailyRent, dailyWages,
+  START_CASH, START_SLOTS, autoSeconds, autoTip, clamp, dailyRent, dailyWages,
   demandFactor, effPrice, fmt, hireCost, itemById, levelFromXp, maxPrice,
   MIN_PRICE, queueCap, round2, shelfCapacity, shelfCost, slotCost, snap25,
   upgradeCost, upgradeMax, wageOf,
@@ -442,7 +442,14 @@ function tick(st: GameState, dt: number): GameState {
     while (s.autoAcc >= 1 && s.queue.length > 0) {
       s.autoAcc -= 1;
       const c = s.queue.shift()!;
-      completeSale(s, c, false, 0);
+      // Calculate cart total for tip calculation
+      let cartTotal = 0;
+      for (const l of c.cart) {
+        cartTotal += l.qty * (s.prices[l.itemId] ?? itemById(l.itemId).retail);
+      }
+      cartTotal = round2(cartTotal);
+      const tip = autoTip(cartTotal, s.speedLvl);
+      completeSale(s, c, false, tip);
     }
     if (s.queue.length === 0) s.autoAcc = 0;
   } else {
