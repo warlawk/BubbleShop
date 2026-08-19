@@ -138,7 +138,7 @@ export const shelfCost = (count: number) =>
  * Cashiers cost more than stockers, both scale with headcount
  */
 export const hireCost = (kind: "cashier" | "stocker", n: number) =>
-  Math.round(kind === "cashier" ? 150 * Math.pow(1.5, n) : 80 * Math.pow(1.35, n));
+  Math.round(kind === "cashier" ? 120 * Math.pow(1.5, n) : 80 * Math.pow(1.35, n));
 
 /** Minimum store level required to unlock each staff type */
 export const STAFF_UNLOCK: Record<"cashier" | "stocker", number> = { cashier: 4, stocker: 2 };
@@ -171,6 +171,22 @@ export const queueCap = (registers: number) => 5 + 3 * (registers - 1);
 
 /** Calculate time (in seconds) for automatic checkout per customer */
 export const autoSeconds = (speedLvl: number) => 3.5 / (1 + 0.3 * speedLvl);
+
+/**
+ * Calculate tip amount for automatic cashier checkout
+ * Base rate 1-3% based on speed level, plus speed bonus
+ * @param cartTotal - Total sale amount
+ * @param speedLvl - Current checkout speed upgrade level
+ * @returns Tip amount (minimum $0.25)
+ */
+export const autoTip = (cartTotal: number, speedLvl: number): number => {
+  // Base rate scales from 1% to 3% based on speed level (0-5)
+  const baseRate = 0.01 + (speedLvl / 5) * 0.02; // 1% at lvl 0, 3% at lvl 5
+  const speedBonus = speedLvl * 0.005; // +0.5% per speed level
+  const tipRate = Math.min(0.05, baseRate + speedBonus); // Cap at 5%
+  const tip = round2(Math.max(0.25, cartTotal * tipRate));
+  return tip;
+};
 
 /** Calculate daily rent based on store size (slots) */
 export const dailyRent = (slots: number) => 12 + slots * 2;
